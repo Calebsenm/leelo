@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxWidth="240.0" prefHeight="340.0" prefWidth="240.0" styleClass="form-compact" alignment="CENTER" spacing="10" stylesheets="@css/main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.addWordController">
+    <children>
+        <Label styleClass="title-sm, text-primary" text="Agregar" />
+        <Label styleClass="text-xs" text="Término" />
+        <TextField fx:id="termField" maxWidth="180.0" promptText="Término" />
+        <Label styleClass="text-xs" text="Traducción" />
+        <TextField fx:id="translationField" maxWidth="180.0" promptText="Traducción" />
+        <Label styleClass="text-xs" text="Pronunciación" />
+        <TextField fx:id="pronunciationField" maxWidth="180.0" promptText="Pronunciación" />
+        <Label styleClass="text-xs" text="URL" />
+        <TextField fx:id="urlImgField" maxWidth="180.0" promptText="Opcional" />
+        <Label styleClass="text-xs" text="Estado" />
+        <ComboBox fx:id="stateCombo" maxWidth="180.0" />
+        <Button fx:id="saveButton" styleClass="btn" maxWidth="120.0" minHeight="32.0" text="Guardar" />
+        <Label fx:id="messageLabel" styleClass="text-xs, text-error" text="" visible="false" />
+    </children>
+</VBox>

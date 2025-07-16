@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane 
+    xmlns="http://javafx.com/javafx/23.0.1" 
+    xmlns:fx="http://javafx.com/fxml/1" 
+    fx:controller="com.leelo.controller.addTextController"
+    stylesheets="@css/main.css"
+    styleClass="page-container">
+
+    <center>
+        <VBox styleClass="card, max-content-width" alignment="TOP_CENTER" VBox.vgrow="ALWAYS">
+            <children>
+                <!-- Header -->
+                <VBox styleClass="spacing-sm, center, section" alignment="CENTER">
+                    <children>
+                        <Label fx:id="formTitleLabel" styleClass="title-lg" text="Agregar Texto" />
+                        <Label styleClass="text-secondary, text-base" text="Crea un nuevo texto para práctica de lectura" />
+                    </children>
+                </VBox>
+                
+                <!-- Title Field -->
+                <VBox styleClass="spacing-sm, section">
+                    <children>
+                        <Label styleClass="form-label" text="Título *" />
+                        <TextField fx:id="titleField" styleClass="form-input" 
+                                   promptText="Título descriptivo del texto" 
+                                   maxWidth="Infinity" />
+                        <Label fx:id="titleValidationLabel" styleClass="text-sm, text-error" 
+                               text="" visible="false" />
+                    </children>
+                </VBox>
+                
+                <!-- Content Field -->
+                <VBox styleClass="spacing-sm, section" VBox.vgrow="ALWAYS">
+                    <children>
+                        <Label styleClass="form-label" text="Contenido *" />
+                        <TextArea fx:id="areaContent" styleClass="form-textarea" 
+                                  promptText="Contenido del texto..." 
+                                  prefRowCount="12" maxWidth="Infinity" 
+                                  VBox.vgrow="ALWAYS" />
+                        <Label fx:id="contentValidationLabel" styleClass="text-sm, text-error" 
+                               text="" visible="false" />
+                    </children>
+                </VBox>
+                
+                <!-- Stats -->
+                <HBox styleClass="spacing-sm, section" alignment="CENTER_LEFT">
+                    <children>
+                        <Label fx:id="characterCountLabel" styleClass="text-xs, text-secondary" 
+                               text="0 caracteres" />
+                        <Label fx:id="wordCountLabel" styleClass="text-xs, text-secondary" 
+                               text="• 0 palabras" />
+                    </children>
+                </HBox>
+                
+                <!-- Message -->
+                <VBox fx:id="messageContainer" styleClass="section" visible="false">
+                    <children>
+                        <Label fx:id="messageLabel" styleClass="text-sm, text-success" 
+                               text="" wrapText="true" />
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </center>
+    
+    <bottom>
+        <VBox styleClass="padding-lg, center" alignment="CENTER">
+            <children>
+                <!-- Loading -->
+                <StackPane fx:id="loadingContainer" visible="false" managed="false">
+                    <children>
+                        <ProgressIndicator fx:id="loadingIndicator" prefWidth="24" prefHeight="24" />
+                        <Label styleClass="text-sm, text-secondary" text="Guardando..." />
+                    </children>
+                </StackPane>
+                
+                <!-- Actions -->
+                <HBox fx:id="buttonContainer" styleClass="spacing-md, center">
+                    <children>
+                        <Button fx:id="backButton" styleClass="btn" prefWidth="100.0" text="Cancelar" />
+                        <Button fx:id="saveButton" styleClass="btn" prefWidth="100.0" text="Guardar" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </bottom>
+</BorderPane>

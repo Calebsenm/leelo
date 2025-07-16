@@ -1,0 +1,30 @@
+# Compilation and dependencies
+/target/
+
+# Database files
+leelo.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.swp
+
+# IDE configuration
+/.idea/
+*.iml
+*.ipr
+*.iws
+/.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Maven files
+/logs/
+/mvnw*
+
+# Others
+*.class 
