@@ -6,7 +6,7 @@
 
     <groupId>com.leelo</groupId>
     <artifactId>leelo</artifactId>
-    <version>1.0.0</version>
+    <version>0.1.0</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -14,7 +14,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <javafx.version>23.0.1</javafx.version>
         <app.name>Leelo</app.name>
-        <app.version>1.0.0</app.version>
+        <app.version>0.1.0</app.version>
         <app.mainClass>com.leelo.App</app.mainClass>
     </properties>
 

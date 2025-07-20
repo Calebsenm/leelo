@@ -2,6 +2,11 @@
 
 A desktop application developed in JavaFX to improve reading skills and language learning.
 
+![Read](img/read.png "Read")
+![Read](img/add_translation.png )
+![Read](img/texts.png )
+![Read](img/practice.png )
+
 ## 🚀 Features
 
 - **Text management**: Add and organize texts for reading
@@ -34,16 +39,14 @@ A desktop application developed in JavaFX to improve reading skills and language
    ```bash
    mvn javafx:run
    ```
-
 ### For End Users
 
 1. **Download the application**
-   - Download the `dist/` folder from the project
-   - Or request the distribution ZIP file
+   - leelo-0.1.0-shaded.jar
 
 2. **Run the application**
-   - **Windows**: Double-click on `Leelo.bat`
    - **Manual**: `java -jar Leelo.jar`
+   - **Open**: `leelo-0.1.0-shaded.jar`
 
 ## 📁 Project Structure
 
@@ -61,9 +64,9 @@ leelo/
 │   │       └── com/leelo/
 │   │           ├── *.fxml     # Interface files
 │   │           └── icons/     # Application icons
-├── dist/
-│   ├── Leelo.jar             # Executable JAR
-│   └── Leelo.bat             # Windows execution script
+├── target/
+│   ├── Leelo.jar              # Executable JAR
+│   └── leelo-0.1.0-shaded.jar # Windows execution script
 ├── target/
 │   └── leelo-1.0.0-executable.jar  # JAR with dependencies
 └── pom.xml                   # Maven configuration
@@ -92,56 +95,13 @@ mvn clean package
 # target/leelo-1.0.0-executable.jar
 ```
 
-## 📦 Distribution
-
-### Distribution Files
-- `Leelo.jar`: Executable JAR with all dependencies
-- `Leelo.bat`: Script to run on Windows
-
 ### End User Requirements
 - Java 21 or higher installed
-- Windows 10/11 (for the .bat script)
-
-## 🐛 Troubleshooting
-
-### Error: "Java is not installed"
-- Install Java 21 from: https://adoptium.net/
-- Make sure it's in the system PATH
-
-### Error: "Maven is not installed"
-- Install Maven from: https://maven.apache.org/
-- Verify installation with: `mvn -version`
-
-### Application won't start
-- Verify you have Java 21+: `java -version`
-- Run manually: `java -jar Leelo.jar`
-
-## 🎨 Customization
-
-### Change Application Name
-Edit in `pom.xml`:
-```xml
-<app.name>YourName</app.name>
-```
-
-### Change Version
-Edit in `pom.xml`:
-```xml
-<version>2.0.0</version>
-<app.version>2.0.0</app.version>
-```
-
-## 📞 Support
-
-If you encounter problems:
-1. Verify that you have Java 21 and Maven installed
-2. Run `mvn clean` before trying again
-3. Check error logs for more details
 
 ## 📄 License
 
-This project is under the [specify license] license.
+This project is under the [MIT license] license.
 
 ---
 
-**Developed with ❤️ using JavaFX and Maven** 
+**Developed with ❤️** 
