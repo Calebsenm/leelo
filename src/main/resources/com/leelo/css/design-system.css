@@ -385,9 +385,9 @@
     -fx-background-color: #f9fafb;
     -fx-border-color: #d1d5db;
     -fx-border-width: 1;
-    -fx-border-radius: 20;
+    -fx-border-radius: 10;
     -fx-background-radius: 20;
-    -fx-padding: 10 20;
+    -fx-padding: 10 15;
     -fx-font-size: 14px;
     -fx-text-fill: #1f2937;
     -fx-prompt-text-fill: #9ca3af;
@@ -491,7 +491,7 @@
 }
 
 .table-view .table-cell {
-    -fx-padding: 16 20;
+    -fx-padding: 8 8;
     -fx-font-size: 14px;
     -fx-text-fill: #1e293b;
     -fx-alignment: center-left;
