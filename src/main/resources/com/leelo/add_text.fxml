@@ -19,7 +19,6 @@
                 <VBox alignment="CENTER" styleClass="spacing-sm, center, section">
                     <children>
                         <Label fx:id="formTitleLabel" styleClass="title-lg" text="Agregar Texto" />
-                        <Label styleClass="text-secondary, text-base" text="Crea un nuevo texto para práctica de lectura" />
                     </children>
                 </VBox>
                 
@@ -36,7 +35,7 @@
                 <VBox styleClass="spacing-sm, section" VBox.vgrow="ALWAYS">
                     <children>
                         <Label styleClass="form-label" text="Contenido *" />
-                        <TextArea fx:id="areaContent" maxWidth="Infinity" prefHeight="367.0" prefRowCount="12" prefWidth="558.0" promptText="Contenido del texto..." styleClass="form-textarea" VBox.vgrow="ALWAYS" />
+                        <TextArea fx:id="areaContent"  promptText="Contenido del texto..." styleClass="form-textarea" VBox.vgrow="ALWAYS" />
                         <Label fx:id="contentValidationLabel" styleClass="text-sm, text-error" text="" visible="false" />
                     </children>
                 </VBox>
@@ -75,6 +74,8 @@
                     <children>
                         <Button fx:id="backButton" prefWidth="100.0" styleClass="btn" text="Cancelar" />
                         <Button fx:id="saveButton" prefWidth="100.0" styleClass="btn" text="Guardar" />
+                        <Button fx:id="pdfButton" prefWidth="100.0" styleClass="btn" text="PDF" />
+                        <Button fx:id="txtButton" prefWidth="100.0" styleClass="btn" text="TXT" />
                     </children>
                 </HBox>
             </children>

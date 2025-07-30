@@ -184,8 +184,8 @@ public class ReadingController {
             }
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setTitle("Add/Edit Word");
-            dialog.setScene(new Scene(root, 250, 327));
+            dialog.setTitle("Add/Edit");
+            dialog.setScene(new Scene(root, 200, 250));
             dialog.showAndWait();
             // On close, refresh words and highlighting
             loadSavedWords();

@@ -130,7 +130,7 @@ public class wordsController {
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.setTitle("Add/Edit Word");
-            dialog.setScene(new Scene(root, 250, 327));
+            dialog.setScene(new Scene(root, 200, 250));
             dialog.showAndWait();
 
             loadWords();
