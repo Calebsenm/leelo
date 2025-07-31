@@ -109,7 +109,17 @@ public class wordsController {
 
     private void goToAddWord() {
         try {
-            App.setRoot("add_word");
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("add_word.fxml"));
+            Parent root = loader.load();
+       
+            Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.setTitle("Add Word");
+            dialog.setScene(new Scene(root, 200, 250));
+            dialog.showAndWait();
+
+            loadWords();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -129,7 +139,7 @@ public class wordsController {
 
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setTitle("Add/Edit Word");
+            dialog.setTitle("Adit Word");
             dialog.setScene(new Scene(root, 200, 250));
             dialog.showAndWait();
 
