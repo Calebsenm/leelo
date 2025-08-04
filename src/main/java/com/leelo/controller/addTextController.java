@@ -11,6 +11,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
+import javafx.stage.FileChooser;
+import java.io.File;
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import java.io.IOException;
+import java.nio.file.Files;
+
+
 public class addTextController {
 
     // Form fields
@@ -18,6 +27,8 @@ public class addTextController {
     @FXML private TextArea areaContent;
     @FXML private Button saveButton;
     @FXML private Button backButton;
+    @FXML private Button pdfButton; 
+    @FXML private Button txtButton; 
     
     // UI elements for enhanced functionality
     @FXML private Label formTitleLabel;
@@ -57,6 +68,9 @@ public class addTextController {
     private void setupEventHandlers() {
         saveButton.setOnAction(e -> saveOrUpdateText());
         backButton.setOnAction(e -> goToTexts());
+        pdfButton.setOnAction(e -> saveFromPdf());
+        txtButton.setOnAction(e -> saveFromTxt());
+
         
         // Real-time character and word counting
         areaContent.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -260,6 +274,70 @@ public class addTextController {
         saveThread.setDaemon(true);
         saveThread.start();
     }
+
+    
+    private void saveFromPdf() {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Selecciona un archivo PDF");
+    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos PDF", "*.pdf"));
+
+    File selectedFile = fileChooser.showOpenDialog(null);
+    if (selectedFile != null) {
+        String fileName = selectedFile.getName();
+        if (fileName.toLowerCase().endsWith(".pdf")) {
+            fileName = fileName.substring(0, fileName.length() - 4);
+        }
+        titleField.setText(fileName);
+
+        try (PDDocument document = Loader.loadPDF(selectedFile)) {
+            if (!document.isEncrypted()) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                String text = stripper.getText(document);
+                areaContent.setText(text);
+            } else {
+                showError("El archivo está encriptado.");
+            }
+        } catch (Exception e) {
+            showError("Error al leer el PDF: " + e.getMessage());
+        }
+    }
+}
+
+    private void showError(String message) {
+    Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.setTitle("Error");
+    alert.setContentText(message);
+    alert.showAndWait();
+}
+
+    private void saveFromTxt() {
+    FileChooser fileChooser = new FileChooser();
+    fileChooser.setTitle("Selecciona un archivo de texto");
+    fileChooser.getExtensionFilters().add(
+        new FileChooser.ExtensionFilter("Archivos de texto (*.txt)", "*.txt")
+    );
+
+    File selectedFile = fileChooser.showOpenDialog(null);
+    if (selectedFile != null) {
+        try {
+            String content = Files.readString(selectedFile.toPath());
+            String fileName = selectedFile.getName();
+            if (fileName.toLowerCase().endsWith(".txt")) {
+                fileName = fileName.substring(0, fileName.length() - 4);
+            }
+
+            titleField.setText(fileName);
+            areaContent.setText(content);
+            System.out.println("Texto cargado desde: " + fileName);
+
+        } catch (IOException e) {
+            System.err.println("Error leyendo el archivo TXT: " + e.getMessage());
+        }
+    } else {
+        System.out.println("Selección cancelada.");
+    }
+}
+
 
     private void setLoadingState(boolean loading) {
         isLoading = loading;
