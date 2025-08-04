@@ -19,34 +19,49 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import java.io.IOException;
 import java.nio.file.Files;
 
-
 public class addTextController {
 
     // Form fields
-    @FXML private TextField titleField;
-    @FXML private TextArea areaContent;
-    @FXML private Button saveButton;
-    @FXML private Button backButton;
-    @FXML private Button pdfButton; 
-    @FXML private Button txtButton; 
-    
+    @FXML
+    private TextField titleField;
+    @FXML
+    private TextArea areaContent;
+    @FXML
+    private Button saveButton;
+    @FXML
+    private Button backButton;
+    @FXML
+    private Button pdfButton;
+    @FXML
+    private Button txtButton;
+
     // UI elements for enhanced functionality
-    @FXML private Label formTitleLabel;
-    @FXML private Label messageLabel;
-    @FXML private Label titleValidationLabel;
-    @FXML private Label contentValidationLabel;
-    @FXML private Label characterCountLabel;
-    @FXML private Label wordCountLabel;
-    @FXML private VBox messageContainer;
-    @FXML private StackPane loadingContainer;
-    @FXML private ProgressIndicator loadingIndicator;
-    @FXML private HBox buttonContainer;
+    @FXML
+    private Label formTitleLabel;
+    @FXML
+    private Label messageLabel;
+    @FXML
+    private Label titleValidationLabel;
+    @FXML
+    private Label contentValidationLabel;
+    @FXML
+    private Label characterCountLabel;
+    @FXML
+    private Label wordCountLabel;
+    @FXML
+    private VBox messageContainer;
+    @FXML
+    private StackPane loadingContainer;
+    @FXML
+    private ProgressIndicator loadingIndicator;
+    @FXML
+    private HBox buttonContainer;
 
     private TextService textService = new TextService();
     private Text textToEdit = null;
     private boolean isLoading = false;
 
-    // Method called from text controller for edit 
+    // Method called from text controller for edit
     public void setTextToEdit(Text text) {
         this.textToEdit = text;
         if (text != null) {
@@ -71,13 +86,12 @@ public class addTextController {
         pdfButton.setOnAction(e -> saveFromPdf());
         txtButton.setOnAction(e -> saveFromTxt());
 
-        
         // Real-time character and word counting
         areaContent.textProperty().addListener((observable, oldValue, newValue) -> {
             updateCharacterCount();
             clearContentValidation();
         });
-        
+
         titleField.textProperty().addListener((observable, oldValue, newValue) -> {
             clearTitleValidation();
         });
@@ -90,7 +104,7 @@ public class addTextController {
                 validateTitle();
             }
         });
-        
+
         areaContent.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue) { // Lost focus
                 validateContent();
@@ -102,14 +116,14 @@ public class addTextController {
         String content = areaContent.getText();
         int charCount = content.length();
         int wordCount = content.trim().isEmpty() ? 0 : content.trim().split("\\s+").length;
-        
+
         characterCountLabel.setText(charCount + " characters");
         wordCountLabel.setText("• " + wordCount + " words");
     }
 
     private boolean validateTitle() {
         String title = titleField.getText().trim();
-        
+
         if (title.isEmpty()) {
             showTitleValidation("Title is required", true);
             applyFieldErrorStyle(titleField);
@@ -131,7 +145,7 @@ public class addTextController {
 
     private boolean validateContent() {
         String content = areaContent.getText().trim();
-        
+
         if (content.isEmpty()) {
             showContentValidation("Content is required", true);
             applyFieldErrorStyle(areaContent);
@@ -190,16 +204,18 @@ public class addTextController {
     }
 
     private void clearFieldStyle(Control field) {
-        field.getStyleClass().removeAll("text-field-error", "text-area-error", "text-field-success", "text-area-success");
+        field.getStyleClass().removeAll("text-field-error", "text-area-error", "text-field-success",
+                "text-area-success");
     }
 
     private void saveOrUpdateText() {
-        if (isLoading) return;
-        
+        if (isLoading)
+            return;
+
         // Validate all fields
         boolean titleValid = validateTitle();
         boolean contentValid = validateContent();
-        
+
         if (!titleValid || !contentValid) {
             showMessage("Please fix the validation errors above", MessageType.ERROR);
             return;
@@ -207,17 +223,17 @@ public class addTextController {
 
         // Show loading state
         setLoadingState(true);
-        
+
         // Create background task for saving
         Task<Boolean> saveTask = new Task<Boolean>() {
             @Override
             protected Boolean call() throws Exception {
                 // Simulate some processing time for better UX
                 Thread.sleep(500);
-                
+
                 String title = titleField.getText().trim();
                 String content = areaContent.getText().trim();
-                
+
                 boolean success;
                 if (textToEdit != null) {
                     textToEdit.setTittle(title);
@@ -229,24 +245,24 @@ public class addTextController {
                     text.setText(content);
                     success = textService.addText(text);
                 }
-                
+
                 return success;
             }
         };
-        
+
         saveTask.setOnSucceeded(e -> {
             Platform.runLater(() -> {
                 setLoadingState(false);
                 boolean success = saveTask.getValue();
-                
+
                 if (success) {
                     String action = textToEdit != null ? "updated" : "saved";
                     showMessage("Text " + action + " successfully!", MessageType.SUCCESS);
-                    
+
                     // Apply success styles to fields
                     applyFieldSuccessStyle(titleField);
                     applyFieldSuccessStyle(areaContent);
-                    
+
                     // Navigate back after a short delay
                     Platform.runLater(() -> {
                         try {
@@ -261,83 +277,83 @@ public class addTextController {
                 }
             });
         });
-        
+
         saveTask.setOnFailed(e -> {
             Platform.runLater(() -> {
                 setLoadingState(false);
                 showMessage("An error occurred while saving. Please try again.", MessageType.ERROR);
             });
         });
-        
+
         // Run the task in background thread
         Thread saveThread = new Thread(saveTask);
         saveThread.setDaemon(true);
         saveThread.start();
     }
 
-    
     private void saveFromPdf() {
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Selecciona un archivo PDF");
-    fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos PDF", "*.pdf"));
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecciona un archivo PDF");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos PDF", "*.pdf"));
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
 
-    File selectedFile = fileChooser.showOpenDialog(null);
-    if (selectedFile != null) {
-        String fileName = selectedFile.getName();
-        if (fileName.toLowerCase().endsWith(".pdf")) {
-            fileName = fileName.substring(0, fileName.length() - 4);
-        }
-        titleField.setText(fileName);
-
-        try (PDDocument document = Loader.loadPDF(selectedFile)) {
-            if (!document.isEncrypted()) {
-                PDFTextStripper stripper = new PDFTextStripper();
-                String text = stripper.getText(document);
-                areaContent.setText(text);
-            } else {
-                showError("El archivo está encriptado.");
-            }
-        } catch (Exception e) {
-            showError("Error al leer el PDF: " + e.getMessage());
-        }
-    }
-}
-
-    private void showError(String message) {
-    Alert alert = new Alert(Alert.AlertType.ERROR);
-    alert.setTitle("Error");
-    alert.setContentText(message);
-    alert.showAndWait();
-}
-
-    private void saveFromTxt() {
-    FileChooser fileChooser = new FileChooser();
-    fileChooser.setTitle("Selecciona un archivo de texto");
-    fileChooser.getExtensionFilters().add(
-        new FileChooser.ExtensionFilter("Archivos de texto (*.txt)", "*.txt")
-    );
-
-    File selectedFile = fileChooser.showOpenDialog(null);
-    if (selectedFile != null) {
-        try {
-            String content = Files.readString(selectedFile.toPath());
+        File selectedFile = fileChooser.showOpenDialog(null);
+        
+        if (selectedFile != null) {
             String fileName = selectedFile.getName();
-            if (fileName.toLowerCase().endsWith(".txt")) {
+            if (fileName.toLowerCase().endsWith(".pdf")) {
                 fileName = fileName.substring(0, fileName.length() - 4);
             }
-
             titleField.setText(fileName);
-            areaContent.setText(content);
-            System.out.println("Texto cargado desde: " + fileName);
 
-        } catch (IOException e) {
-            System.err.println("Error leyendo el archivo TXT: " + e.getMessage());
+            try (PDDocument document = Loader.loadPDF(selectedFile)) {
+                if (!document.isEncrypted()) {
+                    PDFTextStripper stripper = new PDFTextStripper();
+                    String text = stripper.getText(document);
+                    areaContent.setText(text);
+                } else {
+                    showError("El archivo está encriptado.");
+                }
+            } catch (Exception e) {
+                showError("Error al leer el PDF: " + e.getMessage());
+            }
         }
-    } else {
-        System.out.println("Selección cancelada.");
     }
-}
 
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void saveFromTxt() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Selecciona un archivo de texto");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Archivos de texto (*.txt)", "*.txt"));
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));        
+
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            try {
+                String content = Files.readString(selectedFile.toPath());
+                String fileName = selectedFile.getName();
+                if (fileName.toLowerCase().endsWith(".txt")) {
+                    fileName = fileName.substring(0, fileName.length() - 4);
+                }
+
+                titleField.setText(fileName);
+                areaContent.setText(content);
+                System.out.println("Texto cargado desde: " + fileName);
+
+            } catch (IOException e) {
+                System.err.println("Error leyendo el archivo TXT: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Selección cancelada.");
+        }
+    }
 
     private void setLoadingState(boolean loading) {
         isLoading = loading;
@@ -345,7 +361,7 @@ public class addTextController {
         loadingContainer.setManaged(loading);
         buttonContainer.setVisible(!loading);
         buttonContainer.setManaged(!loading);
-        
+
         // Disable form fields during loading
         titleField.setDisable(loading);
         areaContent.setDisable(loading);
@@ -366,15 +382,14 @@ public class addTextController {
     private void showMessage(String message, MessageType type) {
         messageLabel.setText(message);
         messageContainer.setVisible(true);
-        
+
         // Clear existing style classes
         messageLabel.getStyleClass().removeAll(
-            "validation-message-success", 
-            "validation-message-error", 
-            "validation-message-warning", 
-            "validation-message-info"
-        );
-        
+                "validation-message-success",
+                "validation-message-error",
+                "validation-message-warning",
+                "validation-message-info");
+
         // Apply appropriate style class
         switch (type) {
             case SUCCESS:
@@ -390,7 +405,7 @@ public class addTextController {
                 messageLabel.getStyleClass().add("validation-message-info");
                 break;
         }
-        
+
         // Auto-hide success messages after 3 seconds
         if (type == MessageType.SUCCESS) {
             Platform.runLater(() -> {
@@ -405,4 +420,4 @@ public class addTextController {
             });
         }
     }
-} 
+}

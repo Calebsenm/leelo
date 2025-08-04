@@ -44,7 +44,7 @@ public class ReadingController {
     private WordService WordService = new WordService();
     private Map<String, Word> savedWords = new HashMap<>();
     private List<String> pages = new ArrayList<>();
-    private static final int WORDS_PER_PAGE = 300;
+    private static final int WORDS_PER_PAGE = 400;
 
     @FXML
     public void initialize() {

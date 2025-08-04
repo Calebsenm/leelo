@@ -13,7 +13,6 @@
         <fx:include fx:id="menu" source="side_menu.fxml" />
     </left>
     <top>
-        <!-- Reading Controls - Botones Anchos y Bien Espaciados -->
         <HBox alignment="CENTER" styleClass="reading-controls-minimal">
             <!-- Navigation -->
             <Button fx:id="prevPageButton" styleClass="btn" prefWidth="90.0" text="‹ Anterior">
@@ -35,7 +34,6 @@
         </HBox>
     </top>
     <center>
-        <!-- Clean Reading Content -->
         <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="reading-content-clean">
             <content>
                 <VBox fx:id="textVBox" styleClass="reading-text-clean" />
