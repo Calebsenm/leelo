@@ -18,6 +18,57 @@ public class TextDAO {
             return false;
         }
     }
+    
+    public boolean saveProgress(int id_book , int page){
+        String sql = "INSERT INTO progress(id_book ,page_book) VALUES(? , ? )" ;
+        String update = "";
+
+        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)){
+            
+            pstmt.setInt(1, id_book); 
+            pstmt.setInt(2, page);
+            
+            pstmt.executeUpdate(); 
+            return true; 
+
+        }   catch (SQLException e){
+            e.printStackTrace();
+            return false; 
+        }
+    }
+    
+    public boolean updateProgress(int id_book , int page ) {
+        String sql = "UPDATE progress SET page_book = ? WHERE id_book = ?";
+        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, page );
+            pstmt.setInt(2, id_book );
+
+            pstmt.executeUpdate();
+
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public int getPage(int id_book){
+        
+        int page = 0; 
+        String sql = "SELECT page_book FROM progress WHERE  id_book = ?";
+
+        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, id_book);
+            ResultSet rs = pstmt.executeQuery();
+            page = rs.getInt("page_book");
+    
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }   
+        
+        return page; 
+    }
 
     public List<Text> listAll() {
         List<Text> texts = new ArrayList<>();

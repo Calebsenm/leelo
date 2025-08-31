@@ -11,6 +11,18 @@ public class TextService {
         return TextDAO.insertText(text);
     }
 
+    public boolean savePage(int id_text , int page ){
+        return TextDAO.saveProgress(id_text , page); 
+    }
+
+    public boolean updateProgress(int id_text , int page){
+        return TextDAO.updateProgress(id_text , page ); 
+    }
+
+    public int  getPage(int id_book){
+        return TextDAO.getPage(id_book); 
+    } 
+
     public List<Text> listAllTexts() {
         return TextDAO.listAll();
     }

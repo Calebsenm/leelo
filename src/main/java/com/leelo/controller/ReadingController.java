@@ -9,6 +9,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import com.leelo.model.Word;
 import com.leelo.service.WordService;
+import com.leelo.service.TextService; 
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class ReadingController {
     private double fontSize = 22.0;
     private com.leelo.model.Text currentText;
     private WordService WordService = new WordService();
+    private TextService textService = new TextService(); 
     private Map<String, Word> savedWords = new HashMap<>();
     private List<String> pages = new ArrayList<>();
     private static final int WORDS_PER_PAGE = 400;
@@ -57,7 +59,8 @@ public class ReadingController {
 
     }
 
-    private void showPage() {
+    private void showPage() { 
+
         textVBox.getChildren().clear();
         String content;
         if (pages.isEmpty()) {
@@ -125,6 +128,7 @@ public class ReadingController {
     private void previousPage() {
         if (currentPage > 1) {
             currentPage--;
+            textService.updateProgress(currentText.getIdText() , currentPage); 
             showPage();
         }
     }
@@ -132,6 +136,7 @@ public class ReadingController {
     private void nextPage() {
         if (currentPage < totalPages) {
             currentPage++;
+            textService.updateProgress(currentText.getIdText() , currentPage); 
             showPage();
         }
     }
@@ -144,7 +149,15 @@ public class ReadingController {
     public void setText(com.leelo.model.Text selected) {
         this.currentText = selected;
         preparePages();
-        currentPage = 1;
+        
+        // get the last saved page 
+        int idSelectedText = selected.getIdText(); 
+        currentPage = textService.getPage(idSelectedText);
+        if (currentPage == 0){
+            currentPage +=  1;  
+            textService.savePage(currentText.getIdText(), currentPage); 
+        }
+
         totalPages = pages.size();
         showPage();
     }

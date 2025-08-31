@@ -46,6 +46,13 @@ public class Database {
                     "words_reviewed INTEGER NOT NULL," +
                     "correct_answers INTEGER NOT NULL," +
                     "session_duration INTEGER NOT NULL)");
+            // Create table for save the page of a text 
+            stmt.executeUpdate( "CREATE TABLE IF NOT EXISTS progress (" +
+                "id_progress INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "id_book INTEGER NOT NULL,"+
+                "page_book INTEGER NOT NULL," +
+                "FOREIGN KEY (id_book) references texts(id_text) )");
+
             System.out.println("Database initialization completed.");
         } catch (SQLException e) {
             e.printStackTrace();
