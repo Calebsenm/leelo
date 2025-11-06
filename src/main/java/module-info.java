@@ -4,7 +4,9 @@ module com.leelo {
     requires java.sql;
     requires org.xerial.sqlitejdbc;
 
-    requires org.apache.pdfbox;            
+    requires org.apache.pdfbox;
+    requires java.desktop;
+    requires org.jsoup;            
 
     opens com.leelo;
     opens com.leelo.controller to javafx.fxml;

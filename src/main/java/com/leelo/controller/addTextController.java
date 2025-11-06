@@ -6,12 +6,18 @@ import com.leelo.service.TextService;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+
 import java.io.File;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -34,6 +40,8 @@ public class addTextController {
     private Button pdfButton;
     @FXML
     private Button txtButton;
+    @FXML
+    private Button urlButton;
 
     // UI elements for enhanced functionality
     @FXML
@@ -85,6 +93,7 @@ public class addTextController {
         backButton.setOnAction(e -> goToTexts());
         pdfButton.setOnAction(e -> saveFromPdf());
         txtButton.setOnAction(e -> saveFromTxt());
+        urlButton.setOnAction(e -> saveFromUrl());
 
         // Real-time character and word counting
         areaContent.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -298,7 +307,7 @@ public class addTextController {
         fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
 
         File selectedFile = fileChooser.showOpenDialog(null);
-        
+
         if (selectedFile != null) {
             String fileName = selectedFile.getName();
             if (fileName.toLowerCase().endsWith(".pdf")) {
@@ -320,6 +329,35 @@ public class addTextController {
         }
     }
 
+    private void saveFromUrl() {
+        openAddUrlWindow();
+    }
+
+    public void addTextFromUrl(String title, String content) {
+        titleField.setText(title);
+        areaContent.setText(content);
+    }
+
+    private void openAddUrlWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/leelo/add_text_url.fxml"));
+            Parent root = loader.load();
+
+            addUrlController controller = loader.getController();
+
+            controller.setParentController(this);
+
+            Stage dialog = new Stage();
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.setTitle("Agregar URL");
+            dialog.setScene(new Scene(root));
+            dialog.showAndWait();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
@@ -332,7 +370,7 @@ public class addTextController {
         fileChooser.setTitle("Selecciona un archivo de texto");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Archivos de texto (*.txt)", "*.txt"));
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));        
+        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
 
         File selectedFile = fileChooser.showOpenDialog(null);
         if (selectedFile != null) {
