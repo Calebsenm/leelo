@@ -32,7 +32,7 @@ public class addWordController {
 
     @FXML
     public void initialize() {
-        stateCombo.setItems(FXCollections.observableArrayList("New", "Learning", "Learned", "Mastered"));
+        stateCombo.setItems(FXCollections.observableArrayList( "Learning", "Learned", "Mastered"));
         saveButton.setOnAction(e -> saveOrUpdateWord());
     }
 

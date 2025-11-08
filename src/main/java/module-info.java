@@ -6,7 +6,8 @@ module com.leelo {
 
     requires org.apache.pdfbox;
     requires java.desktop;
-    requires org.jsoup;            
+    requires org.jsoup;
+    requires javafx.graphics;            
 
     opens com.leelo;
     opens com.leelo.controller to javafx.fxml;

@@ -15,8 +15,10 @@ import javafx.scene.paint.Color;
 import java.util.HashMap;
 import java.util.Map;
 import javafx.stage.Modality;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Point2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import java.util.ArrayList;
@@ -92,12 +94,6 @@ public class ReadingController {
                     case 4: t.setFill(Color.rgb(2, 46, 9)); break; 
                     default: t.setFill(Color.BLACK); break; 
                 }
-                // Tooltip with word info
-                StringBuilder tooltipText = new StringBuilder();
-                tooltipText.append("").append(info.getTranslation() != null ? info.getTranslation() : "-");
-                tooltipText.append("\n").append(info.getPronunciation() != null ? info.getPronunciation() : "-");
-                Tooltip tooltip = new Tooltip(tooltipText.toString());
-                Tooltip.install(t, tooltip);
             }
             t.setOnMouseClicked(e -> {
                 if (e.getButton() == MouseButton.PRIMARY) {
@@ -229,25 +225,34 @@ public class ReadingController {
 
     // Method to show a small tooltip below the word - Right click
     private void showWordTooltip(Text t, Word info) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Term: ").append(info.getTerm()).append("\n");
-        sb.append("Translation: ").append(info.getTranslation() != null ? info.getTranslation() : "-").append("\n");
-        sb.append("Pronunciation: ").append(info.getPronunciation() != null ? info.getPronunciation() : "-").append("\n");
-        sb.append("State: ").append(stateToString(info.getState()));
-        Tooltip tooltip = new Tooltip(sb.toString());
-        tooltip.setAutoHide(true);
 
-        // Show the tooltip just below the word
-        javafx.geometry.Point2D p = t.localToScreen(0, t.getBoundsInLocal().getHeight());
-        tooltip.show(t, p.getX(), p.getY());
+        Popup popup = new Popup();
+        popup.setAutoHide(true);
 
-        // Hide after 2 seconds
+        VBox box = new VBox(4);
+        box.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-padding: 10;" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 8, 0, 0, 3);"+
+            "-fx-font-size: 20px;"
+        );
+
+        Label trans = new Label(info.getTranslation() != null ? info.getTranslation() : "-");
+
+        box.getChildren().addAll(trans);
+        popup.getContent().add(box);
+
+        Point2D p = t.localToScreen(0, t.getBoundsInLocal().getHeight() + 5);
+        popup.show(t, p.getX(), p.getY());
+
         PauseTransition delay = new PauseTransition(Duration.seconds(2));
-        delay.setOnFinished(e -> tooltip.hide());
+        delay.setOnFinished(e -> popup.hide());
         delay.play();
     }
 
-    // Method to automatically save a new word as Learning
+    // Method to automatically save a new word as Learning  
     private void saveWordAsLearning(String wordNorm, String wordOriginal) {
         Word newWord = new Word();
         newWord.setTerm(wordOriginal);
