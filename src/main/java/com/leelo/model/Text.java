@@ -30,4 +30,9 @@ public class Text {
     public void setCreationDate(String creationDate) {
         this.creationDate = creationDate;
     }
+    
+    @Override
+    public String toString() {
+        return "Text (ID: " + idText + ", Title: " + tittle + ")";
+    }
 } 

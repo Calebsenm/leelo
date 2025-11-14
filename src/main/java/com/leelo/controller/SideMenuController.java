@@ -105,7 +105,24 @@ public class SideMenuController {
 
     private void navigate(String destination) {
         try {
-            App.setRoot(destination);
+            if ("home".equals(destination)) {
+                // Recargar home con la nueva vista MVVM
+                HomeController homeController = new HomeController();
+                homeController.initialize();
+                
+                javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
+                javafx.fxml.FXMLLoader sideMenuLoader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/com/leelo/side_menu.fxml")
+                );
+                javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
+                
+                root.setLeft(sideMenu);
+                root.setCenter(homeController.getView());
+                
+                App.getScene().setRoot(root);
+            } else {
+                App.setRoot(destination);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

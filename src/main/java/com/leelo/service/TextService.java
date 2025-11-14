@@ -34,4 +34,8 @@ public class TextService {
     public boolean updateText(Text text) {
         return TextDAO.updateText(text);
     }
+    
+    public Text getLastReadBook() {
+        return TextDAO.getLastReadBook();
+    }
 } 

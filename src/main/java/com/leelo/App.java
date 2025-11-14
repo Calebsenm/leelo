@@ -1,5 +1,6 @@
 package com.leelo;
 
+import com.leelo.controller.HomeController;
 import com.leelo.dao.Database;
 import com.leelo.util.ResponsiveManager;
 import javafx.application.Application;
@@ -21,7 +22,11 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("home"), 720, 480);
+        // Cargar home con la nueva vista MVVM
+        HomeController homeController = new HomeController();
+        homeController.initialize();
+        
+        scene = new Scene(createHomeWithSideMenu(homeController), 720, 480);
         stage.setScene(scene);
         stage.setTitle("Leelo - Main Menu");
         
@@ -29,6 +34,19 @@ public class App extends Application {
         responsiveManager = ResponsiveManager.createAndInitialize(stage);
         
         stage.show();
+    }
+    
+    private static javafx.scene.layout.BorderPane createHomeWithSideMenu(HomeController homeController) throws IOException {
+        javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
+        
+        // Cargar side menu
+        FXMLLoader sideMenuLoader = new FXMLLoader(App.class.getResource("side_menu.fxml"));
+        javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
+        
+        root.setLeft(sideMenu);
+        root.setCenter(homeController.getView());
+        
+        return root;
     }
 
     public static void setRoot(String fxml) throws IOException {

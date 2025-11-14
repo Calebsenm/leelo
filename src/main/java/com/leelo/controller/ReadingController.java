@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.lang.StringBuilder;
 import java.text.Normalizer;
-import javafx.scene.control.Tooltip;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 
@@ -126,6 +125,25 @@ public class ReadingController {
             currentPage--;
             textService.updateProgress(currentText.getIdText() , currentPage); 
             showPage();
+        } else {
+            // Si está en la primera página, volver al home
+            try {
+                HomeController homeController = new HomeController();
+                homeController.initialize();
+                
+                javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
+                javafx.fxml.FXMLLoader sideMenuLoader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/com/leelo/side_menu.fxml")
+                );
+                javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
+                
+                root.setLeft(sideMenu);
+                root.setCenter(homeController.getView());
+                
+                com.leelo.App.getScene().setRoot(root);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -150,9 +168,11 @@ public class ReadingController {
         int idSelectedText = selected.getIdText(); 
         currentPage = textService.getPage(idSelectedText);
         if (currentPage == 0){
-            currentPage +=  1;  
-            textService.savePage(currentText.getIdText(), currentPage); 
+            currentPage = 1;  
         }
+        
+        // Actualizar o crear el progreso para marcar este libro como el último leído
+        textService.updateProgress(currentText.getIdText(), currentPage);
 
         totalPages = pages.size();
         showPage();

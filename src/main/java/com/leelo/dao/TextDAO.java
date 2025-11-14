@@ -38,18 +38,18 @@ public class TextDAO {
     }
     
     public boolean updateProgress(int id_book , int page ) {
-        String sql = "UPDATE progress SET page_book = ? WHERE id_book = ?";
-        try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, page );
-            pstmt.setInt(2, id_book );
-
-            pstmt.executeUpdate();
-
-            return true;
+        // Eliminar registros antiguos del mismo libro
+        String deleteSql = "DELETE FROM progress WHERE id_book = ?";
+        try (Connection conn = Database.getConnection(); 
+             PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+            deleteStmt.setInt(1, id_book);
+            deleteStmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-            return false;
         }
+        
+        // Insertar nuevo registro (esto crea un nuevo id_progress más alto)
+        return saveProgress(id_book, page);
     }
     
     public int getPage(int id_book){
@@ -113,5 +113,27 @@ public class TextDAO {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    public Text getLastReadBook() {
+        String sql = "SELECT t.* FROM texts t " +
+                     "INNER JOIN progress p ON t.id_text = p.id_book " +
+                     "ORDER BY p.id_progress DESC LIMIT 1";
+        
+        try (Connection conn = Database.getConnection(); 
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                Text text = new Text();
+                text.setIdText(rs.getInt("id_text"));
+                text.setTittle(rs.getString("tittle"));
+                text.setText(rs.getString("text"));
+                text.setCreationDate(rs.getString("creation_date"));
+                return text;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 } 
