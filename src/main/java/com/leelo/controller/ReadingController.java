@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -152,6 +153,26 @@ public class ReadingController {
             currentPage++;
             textService.updateProgress(currentText.getIdText() , currentPage); 
             showPage();
+        }else{ 
+            try {
+               
+                HomeController homeController = new HomeController();
+                homeController.initialize();
+                               
+                BorderPane root = new BorderPane();
+                FXMLLoader sideMenuLoader = new FXMLLoader(
+                    getClass().getResource("/com/leelo/side_menu.fxml")
+                );
+                javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
+                               
+                root.setLeft(sideMenu);
+                root.setCenter(homeController.getView());
+                               
+                com.leelo.App.getScene().setRoot(root);
+                           
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -276,9 +297,9 @@ public class ReadingController {
     private void saveWordAsLearning(String wordNorm, String wordOriginal) {
         Word newWord = new Word();
         newWord.setTerm(wordOriginal);
-        newWord.setTranslation(""); // Empty, user will edit it
+        newWord.setTranslation(""); 
         newWord.setPronunciation("");
-        newWord.setState(4); // Mastered (negro)
+        newWord.setState(4); 
         newWord.setUrlImg("");
         new com.leelo.service.WordService().addWord(newWord);
         loadSavedWords();
