@@ -1,7 +1,7 @@
 package com.leelo.controller;
 
 import com.leelo.App;
-import com.leelo.model.Text;
+import com.leelo.model.Texts;
 import com.leelo.service.TextService;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -66,11 +66,11 @@ public class addTextController {
     private HBox buttonContainer;
 
     private TextService textService = new TextService();
-    private Text textToEdit = null;
+    private Texts textToEdit = null;
     private boolean isLoading = false;
 
     // Method called from text controller for edit
-    public void setTextToEdit(Text text) {
+    public void setTextToEdit(Texts text) {
         this.textToEdit = text;
         if (text != null) {
             titleField.setText(text.getTittle());
@@ -249,7 +249,7 @@ public class addTextController {
                     textToEdit.setText(content);
                     success = textService.updateText(textToEdit);
                 } else {
-                    Text text = new Text();
+                    Texts text = new Texts();
                     text.setTittle(title);
                     text.setText(content);
                     success = textService.addText(text);

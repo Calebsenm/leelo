@@ -1,12 +1,12 @@
 package com.leelo.dao;
 
-import com.leelo.model.Text;
+import com.leelo.model.Texts;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TextDAO {
-    public boolean insertText(Text text) {
+    public boolean insertText(Texts text) {
         String sql = "INSERT INTO texts(tittle, text, creation_date) VALUES (?, ?, datetime('now'))";
         try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, text.getTittle());
@@ -70,13 +70,13 @@ public class TextDAO {
         return page; 
     }
 
-    public List<Text> listAll() {
-        List<Text> texts = new ArrayList<>();
+    public List<Texts> listAll() {
+        List<Texts> texts = new ArrayList<>();
         String sql = "SELECT * FROM texts ORDER BY creation_date DESC";
         try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                Text text = new Text();
+                Texts text = new Texts();
                 text.setIdText(rs.getInt("id_text"));
                 text.setTittle(rs.getString("tittle"));
                 text.setText(rs.getString("text"));
@@ -101,7 +101,7 @@ public class TextDAO {
         }
     }
 
-    public boolean updateText(Text text) {
+    public boolean updateText(Texts text) {
         String sql = "UPDATE texts SET tittle = ?, text = ? WHERE id_text = ?";
         try (Connection conn = Database.getConnection(); PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, text.getTittle());
@@ -115,7 +115,7 @@ public class TextDAO {
         }
     }
     
-    public Text getLastReadBook() {
+    public Texts getLastReadBook() {
         String sql = "SELECT t.* FROM texts t " +
                      "INNER JOIN progress p ON t.id_text = p.id_book " +
                      "ORDER BY p.id_progress DESC LIMIT 1";
@@ -124,7 +124,7 @@ public class TextDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                Text text = new Text();
+                Texts text = new Texts();
                 text.setIdText(rs.getInt("id_text"));
                 text.setTittle(rs.getString("tittle"));
                 text.setText(rs.getString("text"));

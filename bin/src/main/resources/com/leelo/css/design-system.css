@@ -1,0 +1,837 @@
+/* ==========================================================================
+   Leelo - Sistema de Diseño con Espaciado Generoso
+   Interfaz limpia y cómoda para toda la aplicación
+   ========================================================================== */
+
+.root {
+    -fx-font-family: "Inter", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1a1a1a;
+    -fx-background-color: #ffffff;
+}
+
+/* ==========================================================================
+   Tipografía
+   ========================================================================== */
+
+.title-xl {
+    -fx-font-size: 28px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #1a1a1a;
+}
+
+.title-lg {
+    -fx-font-size: 22px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #1a1a1a;
+}
+
+.title-md {
+    -fx-font-size: 18px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1a1a1a;
+}
+
+.title-sm {
+    -fx-font-size: 16px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #1a1a1a;
+}
+
+.text-lg {
+    -fx-font-size: 16px;
+    -fx-text-fill: #1a1a1a;
+}
+
+.text-base {
+    -fx-font-size: 14px;
+    -fx-text-fill: #1a1a1a;
+}
+
+.text-sm {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7280;
+}
+
+.text-xs {
+    -fx-font-size: 11px;
+    -fx-text-fill: #9ca3af;
+}
+
+/* Colores de texto */
+.text-primary {
+    -fx-text-fill: #1a1a1a;
+}
+
+.text-secondary {
+    -fx-text-fill: #6b7280;
+}
+
+.text-muted {
+    -fx-text-fill: #9ca3af;
+}
+
+.text-success {
+    -fx-text-fill: #10b981;
+}
+
+.text-warning {
+    -fx-text-fill: #f59e0b;
+}
+
+.text-error {
+    -fx-text-fill: #ef4444;
+}
+
+/* ==========================================================================
+   Espaciado Generoso
+   ========================================================================== */
+
+.spacing-xs {
+    -fx-spacing: 6;
+}
+
+.spacing-sm {
+    -fx-spacing: 12;
+}
+
+.spacing-md {
+    -fx-spacing: 18;
+}
+
+.spacing-lg {
+    -fx-spacing: 24;
+}
+
+.spacing-xl {
+    -fx-spacing: 32;
+}
+
+.padding-xs {
+    -fx-padding: 8;
+}
+
+.padding-sm {
+    -fx-padding: 12;
+}
+
+.padding-md {
+    -fx-padding: 16;
+}
+
+.padding-lg {
+    -fx-padding: 24;
+}
+
+.padding-xl {
+    -fx-padding: 32;
+}
+
+.padding-2xl {
+    -fx-padding: 40;
+}
+
+/* ==========================================================================
+   Contenedores con Espaciado Cómodo
+   ========================================================================== */
+
+.page-container {
+    -fx-padding: 10;
+    -fx-background-color: #ffffff;
+    -fx-max-width: 1200;
+}
+
+.content-container {
+    -fx-padding: 20;
+    -fx-background-color: #ffffff;
+}
+
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16px;
+    -fx-border-color: #f3f4f6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 16px;
+    -fx-padding: 24px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.13), 16, 0.15, 0, 4);
+}
+
+.card-sm {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 16;
+}
+
+.form-compact {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 1;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-padding: 8;
+    -fx-spacing: 2;
+}
+
+.section {
+    -fx-padding: 0 0 20 0;
+}
+
+/* ==========================================================================
+   Botones con Espaciado Cómodo
+   ========================================================================== */
+
+.btn {
+    -fx-padding: 12 20;
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+    -fx-min-height: 40;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.btn-primary {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 1;
+}
+
+.btn-primary:hover {
+    -fx-background-color: #1d4ed8;
+    -fx-border-color: #1d4ed8;
+}
+
+.btn-primary:pressed {
+    -fx-background-color: #1e40af;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: #6b7280;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #f9fafb;
+    -fx-text-fill: #374151;
+}
+
+.btn-secondary:pressed {
+    -fx-background-color: #f3f4f6;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.btn-success {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #10b981;
+    -fx-border-width: 1;
+}
+
+.btn-success:hover {
+    -fx-background-color: #059669;
+}
+
+.btn-danger {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ef4444;
+    -fx-border-color: #ef4444;
+    -fx-border-width: 1;
+}
+
+.btn-danger:hover {
+    -fx-background-color: #fef2f2;
+    -fx-border-color: #dc2626;
+}
+
+.btn-sm {
+    -fx-padding: 8 16;
+    -fx-font-size: 12px;
+    -fx-min-height: 32;
+}
+
+.btn-lg {
+    -fx-padding: 16 24;
+    -fx-font-size: 16px;
+    -fx-min-height: 48;
+}
+
+/* Botones especiales de práctica */
+.btn-practice-correct {
+    -fx-background-color: #10b981;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #10b981;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+}
+
+.btn-practice-correct:hover {
+    -fx-background-color: #059669;
+}
+
+.btn-practice-incorrect {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #ef4444;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+    -fx-padding: 12 24;
+}
+
+.btn-practice-incorrect:hover {
+    -fx-background-color: #dc2626;
+}
+
+.btn-practice-show {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 12 24;
+}
+
+.btn-practice-show:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+/* Botón minimalista para controles */
+.btn-minimal {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 16px;
+    -fx-padding: 8 12;
+    -fx-min-width: 36;
+    -fx-min-height: 36;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.btn-minimal:hover {
+    -fx-background-color: #f3f4f6;
+    -fx-text-fill: #374151;
+}
+
+/* ==========================================================================
+   Formularios con Espaciado Cómodo
+   ========================================================================== */
+
+.form-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: #374151;
+    -fx-padding: 0 0 8 0;
+}
+
+.form-input {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12 16;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f2937;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-min-height: 44;
+}
+
+.form-input:focused {
+    -fx-border-color: #2563eb;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.1), 4, 0.3, 0, 0);
+}
+
+.form-input:hover {
+    -fx-border-color: #9ca3af;
+}
+
+.form-textarea {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f2937;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-min-height: 120;
+    -fx-wrap-text: true;
+}
+
+.form-textarea:focused {
+    -fx-border-color: #2563eb;
+    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.1), 4, 0.3, 0, 0);
+}
+
+.search-input {
+    -fx-background-color: #f9fafb;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 20;
+    -fx-padding: 10 15;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1f2937;
+    -fx-prompt-text-fill: #9ca3af;
+    -fx-min-height: 40;
+}
+
+.search-input:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 2;
+}
+
+/* ==========================================================================
+   Navegación Lateral con Espaciado
+   ========================================================================== */
+
+.nav-container {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 0 1 0 0;
+    -fx-pref-width: 48;
+    -fx-padding: 8;
+    -fx-spacing: 4;
+    -fx-alignment: top-center;
+}
+
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 8;
+    -fx-pref-width: 32;
+    -fx-pref-height: 32;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-alignment: center;
+}
+
+.nav-btn:hover {
+    -fx-background-color: #f8fafc;
+}
+
+.nav-btn:pressed {
+    -fx-background-color: #f1f5f9;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+.nav-btn-active {
+    -fx-background-color: #dbeafe !important;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 2;
+}
+
+/* ==========================================================================
+   Tablas con Espaciado Cómodo
+   ========================================================================== */
+
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0.1, 0, 1);
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 16 20;
+    -fx-font-weight: 600;
+    -fx-font-size: 14px;
+    -fx-text-fill: #374151;
+}
+
+.table-view .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #f9fafb;
+}
+
+.table-view .table-row-cell:hover {
+    -fx-background-color: #eff6ff !important;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #dbeafe !important;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 1 0;
+}
+
+.table-view .table-cell {
+    -fx-padding: 8 8;
+    -fx-font-size: 14px;
+    -fx-text-fill: #1e293b;
+    -fx-alignment: center-left;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: #6b7280;
+    -fx-font-size: 14px;
+    -fx-font-style: italic;
+}
+
+/* ==========================================================================
+   Componentes de Práctica con Espaciado
+   ========================================================================== */
+
+.practice-progress {
+    -fx-accent: #2563eb;
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 6;
+    -fx-pref-height: 8;
+}
+
+.practice-progress .bar {
+    -fx-background-color: #2563eb;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+.practice-progress .track {
+    -fx-background-color: #e2e8f0;
+    -fx-background-radius: 6;
+    -fx-background-insets: 0;
+}
+
+.practice-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0.1, 0, 1);
+    -fx-min-height: 150;
+    -fx-max-height: 150;
+}
+
+.practice-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 6, 0.15, 0, 2);
+}
+
+/* ==========================================================================
+   Interfaz de Lectura con Espaciado Mejorado
+   ========================================================================== */
+
+.reading-controls-minimal {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e5e7eb;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 16 40;
+    -fx-spacing: 40;
+    -fx-min-height: 64;
+    -fx-max-height: 64;
+    -fx-alignment: center;
+}
+
+.reading-content-clean {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.reading-content-clean .scroll-pane {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.reading-content-clean .viewport {
+    -fx-background-color: #ffffff;
+}
+
+.reading-text-clean {
+    -fx-padding: 56 48;
+    -fx-spacing: 28;
+    -fx-background-color: #ffffff;
+    -fx-font-size: 17px;
+    -fx-line-spacing: 1.8;
+}
+
+/* Estados de palabras en lectura */
+.word-new {
+    -fx-text-fill: #2563eb;
+    -fx-cursor: hand;
+    -fx-font-weight: 500;
+}
+
+.word-learning {
+    -fx-text-fill: #f59e0b;
+    -fx-cursor: hand;
+    -fx-font-weight: 500;
+}
+
+.word-learned {
+    -fx-text-fill: #10b981;
+    -fx-cursor: hand;
+    -fx-font-weight: 500;
+}
+
+.word-mastered {
+    -fx-text-fill: #6b7280;
+    -fx-cursor: hand;
+}
+
+.word-new:hover {
+    -fx-text-fill: #1d4ed8;
+    -fx-underline: true;
+}
+
+.word-learning:hover {
+    -fx-text-fill: #d97706;
+    -fx-underline: true;
+}
+
+.word-learned:hover {
+    -fx-text-fill: #059669;
+    -fx-underline: true;
+}
+
+.word-mastered:hover {
+    -fx-text-fill: #374151;
+    -fx-underline: true;
+}
+
+/* ==========================================================================
+   Gráficos y Estadísticas con Espaciado
+   ========================================================================== */
+
+.chart-container {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0.1, 0, 1);
+}
+
+.chart-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent;
+    -fx-padding: 16;
+}
+
+.chart-view .chart-plot-background {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 1;
+}
+
+/* Colores para estados de aprendizaje */
+.chart-view .default-color0.chart-bar {
+    -fx-bar-fill: #ef4444;
+}
+
+.chart-view .default-color1.chart-bar {
+    -fx-bar-fill: #f97316;
+}
+
+.chart-view .default-color2.chart-bar {
+    -fx-bar-fill: #eab308;
+}
+
+.chart-view .default-color3.chart-bar {
+    -fx-bar-fill: #22c55e;
+}
+
+.chart-view .default-color4.chart-bar {
+    -fx-bar-fill: #10b981;
+}
+
+.chart-view .default-color5.chart-bar {
+    -fx-bar-fill: #059669;
+}
+
+/* ==========================================================================
+   Utilidades
+   ========================================================================== */
+
+.center {
+    -fx-alignment: center;
+}
+
+.center-left {
+    -fx-alignment: center-left;
+}
+
+.center-right {
+    -fx-alignment: center-right;
+}
+
+.top-center {
+    -fx-alignment: top-center;
+}
+
+.full-width {
+    -fx-max-width: infinity;
+    -fx-pref-width: infinity;
+}
+
+.max-content-width {
+    -fx-max-width: 1200;
+}
+
+.grow {
+    -fx-hgrow: always;
+    -fx-vgrow: always;
+}
+
+.grow-h {
+    -fx-hgrow: always;
+}
+
+.grow-v {
+    -fx-vgrow: always;
+}
+
+/* ==========================================================================
+   Estados Visuales
+   ========================================================================== */
+
+.success-state {
+    -fx-background-color: #d1fae5;
+    -fx-border-color: #059669;
+    -fx-border-width: 2;
+}
+
+.error-state {
+    -fx-background-color: #fecaca;
+    -fx-border-color: #dc2626;
+    -fx-border-width: 2;
+}
+
+.loading-state {
+    -fx-opacity: 0.7;
+}
+
+.disabled-state {
+    -fx-opacity: 0.5;
+}
+
+/* ==========================================================================
+Estilos Específicos para Práctica - Interfaz Súper Fácil
+==========================================================================*/ 
+
+.title-xxl {
+    -fx-font-size: 36px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1a1a1a;
+}
+
+.text-bold {
+    -fx-font-weight: 700;
+}
+
+.text-italic {
+    -fx-font-style: italic;
+}
+
+/* Botón minimalista universal */
+.btn {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1a1a1a;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-padding: 6px 12px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-border-color: #d1d5db;
+    -fx-border-width: 2px;
+    -fx-effect: none;
+}
+
+/* Elimino estilos innecesarios */
+.btn-xl, .btn-lg, .btn-md, .btn-outline, .btn-primary, .btn-success, .btn-danger, .btn-secondary {
+    -fx-background-color: inherit;
+    -fx-text-fill: inherit;
+    -fx-font-size: inherit;
+    -fx-font-weight: inherit;
+    -fx-padding: inherit;
+    -fx-border-radius: inherit;
+    -fx-background-radius: inherit;
+    -fx-effect: none;
+    -fx-border-color: transparent;
+}
+
+/* Progress Bar Mejorada */
+.progress-primary .bar {
+    -fx-background-color: #10b981;
+    -fx-background-radius: 4px;
+}
+
+.progress-primary .track {
+    -fx-background-color: #e5e7eb;
+    -fx-background-radius: 4px;
+}
+
+/* Cards con Mejor Sombra */
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 16px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-border-color: #f3f4f6;
+    -fx-border-width: 1px;
+    -fx-border-radius: 16px;
+}
+
+/* Espaciado Extra Grande */
+.spacing-xl>* {
+    -fx-spacing: 32px;
+}
+
+.padding-xl {
+    -fx-padding: 40px;
+}
+
+/* Animaciones Suaves */
+.btn {
+    -fx-transition: all 0.2s ease;
+}
+
+/* Colores de Estado Más Claros */
+.text-success {
+    -fx-text-fill: #059669;
+}
+
+.text-danger {
+    -fx-text-fill: #dc2626;
+}
+
+.text-info {
+    -fx-text-fill: #2563eb;
+}

@@ -28,6 +28,7 @@ import java.lang.StringBuilder;
 import java.text.Normalizer;
 import javafx.animation.PauseTransition;
 import javafx.util.Duration;
+import com.leelo.model.Texts; 
 
 public class ReadingController {
     @FXML private Button prevPageButton;
@@ -43,7 +44,7 @@ public class ReadingController {
     private int currentPage = 1;
     private int totalPages = 1;
     private double fontSize = 22.0;
-    private com.leelo.model.Text currentText;
+    private Texts currentText;
     private WordService WordService = new WordService();
     private TextService textService = new TextService(); 
     private Map<String, Word> savedWords = new HashMap<>();
@@ -181,7 +182,7 @@ public class ReadingController {
         showPage();
     }
 
-    public void setText(com.leelo.model.Text selected) {
+    public void setText(Texts selected) {
         this.currentText = selected;
         preparePages();
         

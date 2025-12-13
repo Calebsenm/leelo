@@ -28,8 +28,3 @@ Thumbs.db
 
 # Others
 *.class 
-
-.classpath
-.project
-.settings/
- /bin/

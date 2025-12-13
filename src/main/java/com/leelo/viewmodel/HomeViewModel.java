@@ -1,13 +1,13 @@
 package com.leelo.viewmodel;
 
-import com.leelo.model.Text;
+import com.leelo.model.Texts;
 import com.leelo.service.TextService;
 import javafx.beans.property.*;
 
 public class HomeViewModel {
     private final TextService textService;
     
-    private final ObjectProperty<Text> lastOpenedBook = new SimpleObjectProperty<>();
+    private final ObjectProperty<Texts> lastOpenedBook = new SimpleObjectProperty<>();
     private final IntegerProperty readingProgress = new SimpleIntegerProperty(0);
     private final StringProperty bookTitle = new SimpleStringProperty("Sin libro");
     private final BooleanProperty hasBook = new SimpleBooleanProperty(false);
@@ -20,7 +20,7 @@ public class HomeViewModel {
     
     private void loadLastOpenedBook() {
         // Primero intentar obtener el último libro leído desde la tabla progress
-        Text lastBook = textService.getLastReadBook();
+        Texts lastBook = textService.getLastReadBook();
         
         // Si no hay progreso registrado, obtener el último libro creado
         if (lastBook == null) {
@@ -71,7 +71,7 @@ public class HomeViewModel {
     
 
     
-    public ObjectProperty<Text> lastOpenedBookProperty() {
+    public ObjectProperty<Texts> lastOpenedBookProperty() {
         return lastOpenedBook;
     }
     
@@ -87,7 +87,7 @@ public class HomeViewModel {
         return hasBook;
     }
     
-    public Text getLastOpenedBook() {
+    public Texts getLastOpenedBook() {
         return lastOpenedBook.get();
     }
     

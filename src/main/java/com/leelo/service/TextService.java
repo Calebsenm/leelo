@@ -1,13 +1,13 @@
 package com.leelo.service;
 
 import com.leelo.dao.TextDAO;
-import com.leelo.model.Text;
+import com.leelo.model.Texts;
 import java.util.List;
 
 public class TextService {
     private TextDAO TextDAO = new TextDAO();
 
-    public boolean addText(Text text) {
+    public boolean addText(Texts text) {
         return TextDAO.insertText(text);
     }
 
@@ -23,7 +23,7 @@ public class TextService {
         return TextDAO.getPage(id_book); 
     } 
 
-    public List<Text> listAllTexts() {
+    public List<Texts> listAllTexts() {
         return TextDAO.listAll();
     }
 
@@ -31,11 +31,11 @@ public class TextService {
         return TextDAO.deleteText(idText);
     }
 
-    public boolean updateText(Text text) {
+    public boolean updateText(Texts text) {
         return TextDAO.updateText(text);
     }
     
-    public Text getLastReadBook() {
+    public Texts getLastReadBook() {
         return TextDAO.getLastReadBook();
     }
 } 

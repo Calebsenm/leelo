@@ -1,6 +1,6 @@
 package com.leelo.model;
 
-public class Text {
+public class Texts {
     private int idText;
     private String tittle;
     private String text;

@@ -1,7 +1,7 @@
 package com.leelo.controller;
 
 import com.leelo.App;
-import com.leelo.model.Text;
+import com.leelo.model.Texts;
 import com.leelo.service.TextService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -20,7 +20,7 @@ import java.util.List;
 
 public class textsController {
     @FXML
-    private TableView<Text> textsTable;
+    private TableView<Texts> textsTable;
     @FXML
     private Button addButton;
     @FXML
@@ -34,12 +34,12 @@ public class textsController {
     @FXML
     private TextField searchText;
     @FXML
-    private TableColumn<Text, String> titleCol;
+    private TableColumn<Texts, String> titleCol;
     @FXML
-    private TableColumn<Text, String> dateCol;
+    private TableColumn<Texts, String> dateCol;
 
     private TextService TextService = new TextService();
-    private ObservableList<Text> textsList = FXCollections.observableArrayList();
+    private ObservableList<Texts> textsList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -63,7 +63,7 @@ public class textsController {
         // search a text by name
         searchText.textProperty().addListener((observable, oldValue, newValue) -> {
             String filter = newValue.toLowerCase(); 
-            List<Text> filteredTexts = TextService.listAllTexts().stream()
+            List<Texts> filteredTexts = TextService.listAllTexts().stream()
                     .filter(text -> text.getTittle().toLowerCase().contains(filter))
                     .toList(); 
 
@@ -73,7 +73,7 @@ public class textsController {
     }
 
     private void loadTexts() {
-        List<Text> texts = TextService.listAllTexts();
+        List<Texts> texts = TextService.listAllTexts();
         textsList.setAll(texts);
         textsTable.setItems(textsList);
     }
@@ -87,7 +87,7 @@ public class textsController {
     }
 
     private void editSelectedText() {
-        Text selected = textsTable.getSelectionModel().getSelectedItem();
+        Texts selected = textsTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             // Optional: show selection required message
             return;
@@ -108,7 +108,7 @@ public class textsController {
     }
 
     private void deleteSelectedText() {
-        Text selected = textsTable.getSelectionModel().getSelectedItem();
+        Texts selected = textsTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             // Optional: show selection required message
             return;
@@ -131,7 +131,7 @@ public class textsController {
 
     private void readSelectedText() {
 
-        Text selected = textsTable.getSelectionModel().getSelectedItem();
+        Texts selected = textsTable.getSelectionModel().getSelectedItem();
         if (selected == null) return;
 
         try {

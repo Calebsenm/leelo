@@ -175,7 +175,7 @@ public class HomeView extends VBox {
     private VBox createFeaturesSection() {
         VBox features = new VBox(15);
         features.setAlignment(Pos.CENTER);
-        features.setMaxWidth(480);
+        features.setMaxWidth(600);
         features.setPadding(new Insets(20));
         features.setStyle(
             "-fx-background-color: white;" +
@@ -192,8 +192,7 @@ public class HomeView extends VBox {
         String[] featureTexts = {
             "• Gestionar Textos — Organiza tu biblioteca de textos de lectura",
             "• Aprender Palabras — Construye tu vocabulario con nuevas palabras",
-            "• Practicar — Refuerza tu aprendizaje con ejercicios",
-            "• Ver Progreso — Monitorea tu avance con estadísticas"
+            "• Practicar — Refuerza tu aprendizaje con ejercicios"
         };
         
         for (String text : featureTexts) {
