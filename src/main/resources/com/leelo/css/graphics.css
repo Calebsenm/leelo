@@ -1,0 +1,47 @@
+
+.chart-container {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0.1, 0, 1);
+}
+
+.chart-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent;
+    -fx-padding: 16;
+}
+
+.chart-view .chart-plot-background {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #f1f5f9;
+    -fx-border-width: 1;
+}
+
+/* Colores para estados de aprendizaje */
+.chart-view .default-color0.chart-bar {
+    -fx-bar-fill: #ef4444;
+}
+
+.chart-view .default-color1.chart-bar {
+    -fx-bar-fill: #f97316;
+}
+
+.chart-view .default-color2.chart-bar {
+    -fx-bar-fill: #eab308;
+}
+
+.chart-view .default-color3.chart-bar {
+    -fx-bar-fill: #22c55e;
+}
+
+.chart-view .default-color4.chart-bar {
+    -fx-bar-fill: #10b981;
+}
+
+.chart-view .default-color5.chart-bar {
+    -fx-bar-fill: #059669;
+}

@@ -1,6 +1,9 @@
-/* ==========================================================================
-   Leelo Application - Sistema de Diseño Principal
-   Importa el sistema de diseño unificado y limpio
-   ========================================================================== */
+/* 
+    Leelo Application Style
+*/
 
 @import "design-system.css";
+@import "practice.css"; 
+@import "state.css";
+@import "utility.css";
+@import "reading.css";

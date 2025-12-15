@@ -1,0 +1,38 @@
+
+.center {
+    -fx-alignment: center;
+}
+
+.center-left {
+    -fx-alignment: center-left;
+}
+
+.center-right {
+    -fx-alignment: center-right;
+}
+
+.top-center {
+    -fx-alignment: top-center;
+}
+
+.full-width {
+    -fx-max-width: infinity;
+    -fx-pref-width: infinity;
+}
+
+.max-content-width {
+    -fx-max-width: 1200;
+}
+
+.grow {
+    -fx-hgrow: always;
+    -fx-vgrow: always;
+}
+
+.grow-h {
+    -fx-hgrow: always;
+}
+
+.grow-v {
+    -fx-vgrow: always;
+}

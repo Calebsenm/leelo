@@ -32,7 +32,7 @@
                     </children>
                 </VBox>
 
-                <Button fx:id="saveButton" prefWidth="140" styleClass="btn primary-btn" text="Guardar" />
+                <Button fx:id="saveButton" prefWidth="140" styleClass="btn" text="Guardar" />
             </children>
         </VBox>
     </center>

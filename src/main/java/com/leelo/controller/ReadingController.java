@@ -43,13 +43,13 @@ public class ReadingController {
     
     private int currentPage = 1;
     private int totalPages = 1;
-    private double fontSize = 22.0;
+    private double fontSize = 25.0;
     private Texts currentText;
     private WordService WordService = new WordService();
     private TextService textService = new TextService(); 
     private Map<String, Word> savedWords = new HashMap<>();
     private List<String> pages = new ArrayList<>();
-    private static final int WORDS_PER_PAGE = 400;
+    private static final int WORDS_PER_PAGE = 200;
 
     @FXML
     public void initialize() {

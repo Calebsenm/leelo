@@ -1,0 +1,20 @@
+
+.success-state {
+    -fx-background-color: #d1fae5;
+    -fx-border-color: #059669;
+    -fx-border-width: 2;
+}
+
+.error-state {
+    -fx-background-color: #fecaca;
+    -fx-border-color: #dc2626;
+    -fx-border-width: 2;
+}
+
+.loading-state {
+    -fx-opacity: 0.7;
+}
+
+.disabled-state {
+    -fx-opacity: 0.5;
+}
