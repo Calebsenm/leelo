@@ -3,43 +3,35 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.leelo</groupId>
   <artifactId>leelo</artifactId>
+  <name>Leelo</name>
   <version>0.1.0</version>
   <build>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.13.0</version>
         <configuration>
-          <release>21</release>
+          <release>${maven.compiler.release}</release>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.openjfx</groupId>
         <artifactId>javafx-maven-plugin</artifactId>
-        <version>0.0.6</version>
-        <executions>
-          <execution>
-            <id>default-cli</id>
-            <configuration>
-              <mainClass>com.leelo.App</mainClass>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>0.0.8</version>
         <configuration>
-          <includes>
-            <include>**/*Test.java</include>
-            <include>**/*Tests.java</include>
-          </includes>
+          <mainClass>${main.class.app}</mainClass>
         </configuration>
       </plugin>
       <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.4.0</version>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
+        <version>3.6.0</version>
         <executions>
           <execution>
+            <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
@@ -47,9 +39,50 @@
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <transformers>
                 <transformer>
-                  <mainClass>com.leelo.Main</mainClass>
+                  <mainClass>${main.class.launcher}</mainClass>
                 </transformer>
+                <transformer />
               </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.panteleyev</groupId>
+        <artifactId>jpackage-maven-plugin</artifactId>
+        <version>1.7.1</version>
+        <executions>
+          <execution>
+            <id>jpackage</id>
+            <phase>package</phase>
+            <goals>
+              <goal>jpackage</goal>
+            </goals>
+            <configuration>
+              <name>Leelo</name>
+              <appVersion>${project.version}</appVersion>
+              <type>APP_IMAGE</type>
+              <destination>${project.build.directory}/dist</destination>
+              <mainClass>${main.class.launcher}</mainClass>
+              <input>${project.build.directory}</input>
+              <mainJar>leelo-${project.version}-shaded.jar</mainJar>
+              <jlinkOptions>
+                <option>--strip-debug</option>
+                <option>--compress=2</option>
+                <option>--no-header-files</option>
+                <option>--no-man-pages</option>
+              </jlinkOptions>
+              <icon>src/main/resources/leelo.ico</icon>
             </configuration>
           </execution>
         </executions>
@@ -59,44 +92,28 @@
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.10.0</version>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.11.3</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
-          <artifactId>junit-platform-engine</artifactId>
-          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>org.junit.jupiter</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>apiguardian-api</artifactId>
-          <groupId>org.apiguardian</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.10.0</version>
-      <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>opentest4j</artifactId>
-          <groupId>org.opentest4j</groupId>
+          <artifactId>junit-jupiter-params</artifactId>
+          <groupId>org.junit.jupiter</groupId>
         </exclusion>
         <exclusion>
-          <artifactId>junit-platform-commons</artifactId>
-          <groupId>org.junit.platform</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>apiguardian-api</artifactId>
-          <groupId>org.apiguardian</groupId>
+          <artifactId>junit-jupiter-engine</artifactId>
+          <groupId>org.junit.jupiter</groupId>
         </exclusion>
       </exclusions>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.5.0</version>
+      <version>5.14.2</version>
       <scope>test</scope>
       <exclusions>
         <exclusion>
@@ -116,17 +133,22 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-junit-jupiter</artifactId>
-      <version>5.5.0</version>
+      <version>5.14.2</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>junit-jupiter-api</artifactId>
+          <groupId>org.junit.jupiter</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <app.mainClass>com.leelo.App</app.mainClass>
-    <app.version>0.1.0</app.version>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.release>25</maven.compiler.release>
+    <javafx.platform>win</javafx.platform>
+    <main.class.launcher>com.leelo.Main</main.class.launcher>
+    <main.class.app>com.leelo.App</main.class.app>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <javafx.version>23.0.1</javafx.version>
-    <app.name>Leelo</app.name>
+    <javafx.version>25.0.1</javafx.version>
   </properties>
 </project>
