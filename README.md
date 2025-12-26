@@ -2,10 +2,12 @@
 
 A desktop application developed in JavaFX to improve reading skills and language learning.
 
-![Read](img/read.png "Read")
-![Read](img/add_translation.png )
+![Read](img/home.png )
+![Read](img/read.png)
 ![Read](img/texts.png )
-![Read](img/practice.png )
+![Read](img/add_text.png )
+
+
 
 ## 🚀 Features
 
