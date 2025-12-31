@@ -3,6 +3,7 @@ package com.leelo.controller;
 import com.leelo.App;
 import com.leelo.model.Texts;
 import com.leelo.service.TextService;
+import com.leelo.util.TextCleaner;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -319,7 +320,8 @@ public class addTextController {
                 if (!document.isEncrypted()) {
                     PDFTextStripper stripper = new PDFTextStripper();
                     String text = stripper.getText(document);
-                    areaContent.setText(text);
+                    String cleanedText = TextCleaner.clean(text);
+                    areaContent.setText(cleanedText);
                 } else {
                     showError("El archivo está encriptado.");
                 }
@@ -335,7 +337,7 @@ public class addTextController {
 
     public void addTextFromUrl(String title, String content) {
         titleField.setText(title);
-        areaContent.setText(content);
+        areaContent.setText(TextCleaner.clean(content));
     }
 
     private void openAddUrlWindow() {
@@ -382,7 +384,7 @@ public class addTextController {
                 }
 
                 titleField.setText(fileName);
-                areaContent.setText(content);
+                areaContent.setText(TextCleaner.clean(content));
                 System.out.println("Texto cargado desde: " + fileName);
 
             } catch (IOException e) {
