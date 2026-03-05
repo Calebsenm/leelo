@@ -10,7 +10,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -21,9 +24,13 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 public class PracticeController {
     private static final int CORRECT_AUTO_ADVANCE_DELAY_MS = 1400;
+    private static final int DEFAULT_SESSION_WORD_COUNT = 30;
+    private static final int MIN_SESSION_WORD_COUNT = 1;
+    private static final int MAX_SESSION_WORD_COUNT = 200;
 
     private enum PracticeMode {
         DESAFIO("Modo Desafio (Cloze)"),
@@ -53,6 +60,7 @@ public class PracticeController {
     @FXML private Button endSessionButton;
     @FXML private ProgressBar progressBar;
     @FXML private ComboBox<PracticeMode> modeCombo;
+    @FXML private Spinner<Integer> wordCountSpinner;
     @FXML private VBox challengeBox;
     @FXML private TextField challengeInput;
     @FXML private Button submitAnswerButton;
@@ -84,6 +92,7 @@ public class PracticeController {
         modeCombo.setItems(FXCollections.observableArrayList(PracticeMode.values()));
         modeCombo.setValue(PracticeMode.DESAFIO);
         modeCombo.valueProperty().addListener((obs, oldV, newV) -> refreshModeView());
+        configureWordCountSpinner();
         challengeInput.setOnAction(e -> submitChallengeAnswer());
 
         resetSessionState();
@@ -113,6 +122,7 @@ public class PracticeController {
 
         startSessionButton.setVisible(false);
         startSessionButton.setManaged(false);
+        wordCountSpinner.setDisable(true);
         nextButton.setVisible(true);
         nextButton.setManaged(true);
         endSessionButton.setVisible(true);
@@ -370,7 +380,7 @@ public class PracticeController {
         }
 
         Collections.shuffle(words);
-        int maxSessionWords = Math.min(words.size(), 30);
+        int maxSessionWords = Math.min(words.size(), getRequestedWordCount());
         return new ArrayList<>(words.subList(0, maxSessionWords));
     }
 
@@ -397,6 +407,7 @@ public class PracticeController {
     private void setInitialUiState() {
         startSessionButton.setVisible(true);
         startSessionButton.setManaged(true);
+        wordCountSpinner.setDisable(false);
         nextButton.setVisible(false);
         nextButton.setManaged(false);
         endSessionButton.setVisible(false);
@@ -422,6 +433,57 @@ public class PracticeController {
         nextButton.setDisable(disabled);
         continueButton.setDisable(disabled);
         modeCombo.setDisable(disabled);
+    }
+
+    private void configureWordCountSpinner() {
+        SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(
+                        MIN_SESSION_WORD_COUNT,
+                        MAX_SESSION_WORD_COUNT,
+                        DEFAULT_SESSION_WORD_COUNT);
+        wordCountSpinner.setValueFactory(valueFactory);
+        wordCountSpinner.setEditable(true);
+
+        UnaryOperator<TextFormatter.Change> filter = change -> {
+            String text = change.getControlNewText();
+            return text.matches("\\d{0,3}") ? change : null;
+        };
+        wordCountSpinner.getEditor().setTextFormatter(new TextFormatter<>(filter));
+
+        wordCountSpinner.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (!isFocused) {
+                applySpinnerEditorValue();
+            }
+        });
+    }
+
+    private int getRequestedWordCount() {
+        applySpinnerEditorValue();
+        Integer value = wordCountSpinner.getValue();
+        if (value == null) {
+            return DEFAULT_SESSION_WORD_COUNT;
+        }
+        return Math.max(MIN_SESSION_WORD_COUNT, Math.min(value, MAX_SESSION_WORD_COUNT));
+    }
+
+    private void applySpinnerEditorValue() {
+        String text = wordCountSpinner.getEditor().getText();
+        if (text == null || text.isBlank()) {
+            wordCountSpinner.getValueFactory().setValue(DEFAULT_SESSION_WORD_COUNT);
+            return;
+        }
+
+        try {
+            int parsed = Integer.parseInt(text.trim());
+            int clamped = Math.max(MIN_SESSION_WORD_COUNT, Math.min(parsed, MAX_SESSION_WORD_COUNT));
+            wordCountSpinner.getValueFactory().setValue(clamped);
+            wordCountSpinner.getEditor().setText(String.valueOf(clamped));
+        } catch (NumberFormatException ex) {
+            Integer current = wordCountSpinner.getValue();
+            int fallback = current != null ? current : DEFAULT_SESSION_WORD_COUNT;
+            wordCountSpinner.getValueFactory().setValue(fallback);
+            wordCountSpinner.getEditor().setText(String.valueOf(fallback));
+        }
     }
 
     private void highlightChoiceResult(Button selected, boolean correct) {

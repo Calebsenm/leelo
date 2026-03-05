@@ -4,6 +4,7 @@ import com.leelo.App;
 import com.leelo.model.Texts;
 import com.leelo.service.TextService;
 import com.leelo.util.TextCleaner;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -18,6 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import org.apache.pdfbox.Loader;
@@ -273,15 +275,10 @@ public class addTextController {
                     applyFieldSuccessStyle(titleField);
                     applyFieldSuccessStyle(areaContent);
 
-                    // Navigate back after a short delay
-                    Platform.runLater(() -> {
-                        try {
-                            Thread.sleep(1000);
-                            goToTexts();
-                        } catch (InterruptedException ex) {
-                            goToTexts();
-                        }
-                    });
+                    // Navigate back after a short delay without blocking the UI thread
+                    PauseTransition navigationDelay = new PauseTransition(Duration.seconds(1));
+                    navigationDelay.setOnFinished(ev -> goToTexts());
+                    navigationDelay.play();
                 } else {
                     showMessage("Could not save the text. Please try again.", MessageType.ERROR);
                 }
@@ -448,16 +445,13 @@ public class addTextController {
 
         // Auto-hide success messages after 3 seconds
         if (type == MessageType.SUCCESS) {
-            Platform.runLater(() -> {
-                try {
-                    Thread.sleep(3000);
-                    if (messageContainer.isVisible()) {
-                        messageContainer.setVisible(false);
-                    }
-                } catch (InterruptedException e) {
-                    // Ignore
+            PauseTransition hideDelay = new PauseTransition(Duration.seconds(3));
+            hideDelay.setOnFinished(ev -> {
+                if (messageContainer.isVisible()) {
+                    messageContainer.setVisible(false);
                 }
             });
+            hideDelay.play();
         }
     }
 }

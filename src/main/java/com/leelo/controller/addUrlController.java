@@ -29,6 +29,7 @@ public class addUrlController {
 
     private addTextController parent;
     private boolean loading;
+    private Task<FetchResult> activeTask;
 
     public void setParentController(addTextController parent) {
         this.parent = parent;
@@ -37,7 +38,7 @@ public class addUrlController {
     @FXML
     public void initialize() {
         saveButton.setOnAction(e -> saveUrl());
-        cancelButton.setOnAction(e -> closeWindow());
+        cancelButton.setOnAction(e -> cancelAndClose());
         urlField.setOnAction(e -> saveUrl());
         titleField.setOnAction(e -> saveUrl());
     }
@@ -70,6 +71,9 @@ public class addUrlController {
         Task<FetchResult> fetchTask = new Task<>() {
             @Override
             protected FetchResult call() throws Exception {
+                if (isCancelled()) {
+                    throw new InterruptedException("Importacion cancelada.");
+                }
                 Document doc = Jsoup.connect(normalizedUrl)
                         .userAgent("Mozilla/5.0")
                         .timeout(12000)
@@ -80,13 +84,18 @@ public class addUrlController {
                     throw new IllegalStateException("No se pudo extraer contenido legible de la URL.");
                 }
 
+                if (isCancelled()) {
+                    throw new InterruptedException("Importacion cancelada.");
+                }
                 String resolvedTitle = !rawTitle.isBlank() ? rawTitle : buildFallbackTitle(doc, normalizedUrl);
                 return new FetchResult(resolvedTitle, extractedText);
             }
         };
+        activeTask = fetchTask;
 
         fetchTask.setOnSucceeded(e -> {
             setLoadingState(false);
+            activeTask = null;
             FetchResult result = fetchTask.getValue();
             if (parent != null) {
                 parent.addTextFromUrl(result.title(), result.content());
@@ -96,11 +105,22 @@ public class addUrlController {
 
         fetchTask.setOnFailed(e -> {
             setLoadingState(false);
+            activeTask = null;
             Throwable ex = fetchTask.getException();
+            if (ex instanceof InterruptedException) {
+                showStatus("Importacion cancelada.", false);
+                return;
+            }
             String message = ex != null && ex.getMessage() != null
                     ? ex.getMessage()
                     : "No se pudo leer la pagina. Intenta con otra URL.";
             showStatus(message, true);
+        });
+
+        fetchTask.setOnCancelled(e -> {
+            setLoadingState(false);
+            activeTask = null;
+            showStatus("Importacion cancelada.", false);
         });
 
         Thread worker = new Thread(fetchTask, "url-import-worker");
@@ -159,9 +179,15 @@ public class addUrlController {
         loadingIndicator.setManaged(value);
 
         saveButton.setDisable(value);
-        cancelButton.setDisable(value);
         titleField.setDisable(value);
         urlField.setDisable(value);
+    }
+
+    private void cancelAndClose() {
+        if (loading && activeTask != null) {
+            activeTask.cancel(true);
+        }
+        closeWindow();
     }
 
     private void closeWindow() {

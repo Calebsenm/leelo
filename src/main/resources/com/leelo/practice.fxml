@@ -4,6 +4,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -23,15 +24,19 @@
                     <Label text="Modo:" styleClass="text-sm, text-secondary" />
                     <ComboBox fx:id="modeCombo" prefWidth="220.0" />
                 </HBox>
+                <HBox alignment="CENTER" styleClass="spacing-md">
+                    <Label text="Palabras:" styleClass="text-sm, text-secondary" />
+                    <Spinner fx:id="wordCountSpinner" editable="true" prefWidth="120.0" />
+                </HBox>
                 <Label fx:id="modeDescriptionLabel" text="Selecciona un modo y empieza la practica." styleClass="text-sm, text-secondary" wrapText="true" />
                 <ProgressBar fx:id="progressBar" prefWidth="620.0" prefHeight="8.0" progress="0.0" styleClass="progress-primary" />
                 <Label fx:id="progressLabel" text="Progress: Ready to start" styleClass="text-sm, text-secondary" />
             </VBox>
 
             <VBox alignment="CENTER" styleClass="card, practice-main-card">
-                <Label fx:id="wordLabel" text="Ready to practice" styleClass="title-xxl, text-primary, text-bold" textAlignment="CENTER" wrapText="true" />
-                <Label fx:id="translationLabel" text="" styleClass="title-lg, text-success, text-bold" visible="false" managed="false" textAlignment="CENTER" wrapText="true" />
-                <Label fx:id="pronunciationLabel" text="" styleClass="text-lg, text-secondary, text-italic" visible="false" managed="false" textAlignment="CENTER" />
+                <Label fx:id="wordLabel" text="Ready to practice" styleClass="title-xl, text-primary" textAlignment="CENTER" wrapText="true" />
+                <Label fx:id="translationLabel" text="" styleClass="title-lg, text-success" visible="false" managed="false" textAlignment="CENTER" wrapText="true" />
+                <Label fx:id="pronunciationLabel" text="" styleClass="text-lg, text-secondary" visible="false" managed="false" textAlignment="CENTER" />
                 <Label fx:id="feedbackLabel" text="" styleClass="text-sm" visible="false" managed="false" />
 
                 <VBox fx:id="challengeBox" alignment="CENTER" styleClass="practice-answer-box" visible="false" managed="false">
