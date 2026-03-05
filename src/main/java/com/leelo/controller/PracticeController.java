@@ -1,461 +1,426 @@
 package com.leelo.controller;
 
-import com.leelo.model.StudySession;
 import com.leelo.model.Word;
-import com.leelo.service.SpacedRepetitionService;
+import com.leelo.service.WordService;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PracticeController {
+    private enum PracticeMode {
+        FLUIDEZ("Modo Fluidez"),
+        DESAFIO("Modo Desafio (Cloze)"),
+        RELAJADO("Modo Repaso Relajado");
+
+        private final String label;
+
+        PracticeMode(String label) {
+            this.label = label;
+        }
+
+        @Override
+        public String toString() {
+            return label;
+        }
+    }
+
     @FXML private Label wordLabel;
     @FXML private Label translationLabel;
     @FXML private Label pronunciationLabel;
     @FXML private Label progressLabel;
     @FXML private Label sessionStatsLabel;
-    @FXML private Label wordStatsLabel;
-    @FXML private Label nextReviewLabel;
-    @FXML private Label reviewHistoryLabel;
     @FXML private Button showButton;
     @FXML private Button nextButton;
-    @FXML private Button backButton;
     @FXML private Button startSessionButton;
     @FXML private Button endSessionButton;
     @FXML private Button correctButton;
     @FXML private Button incorrectButton;
-    @FXML private javafx.scene.control.ProgressBar progressBar;
-    @FXML private javafx.scene.layout.HBox reviewButtonsBox;
+    @FXML private ProgressBar progressBar;
+    @FXML private HBox reviewButtonsBox;
+    @FXML private ComboBox<PracticeMode> modeCombo;
+    @FXML private VBox challengeBox;
+    @FXML private TextField challengeInput;
+    @FXML private Button submitAnswerButton;
+    @FXML private VBox choiceBox;
+    @FXML private Button choiceButton1;
+    @FXML private Button choiceButton2;
+    @FXML private Button choiceButton3;
+    @FXML private Button choiceButton4;
+    @FXML private SideMenuController menuController;
 
-    // Spaced repetition dependencies and variables
-    private SpacedRepetitionService spacedRepetitionService;
-    private StudySession currentSession;
-    private Queue<Word> wordsToReview;
+    private final WordService wordService = new WordService();
+
+    private List<Word> sessionWords = new ArrayList<>();
     private Word currentWord;
     private boolean answerShown;
+    private int currentIndex;
+    private int wordsReviewed;
+    private int correctAnswers;
 
     @FXML
     public void initialize() {
-        // Initialize spaced repetition service
-        spacedRepetitionService = new SpacedRepetitionService();
-        
-        // Initialize study session tracking variables
-        currentSession = null;
-        wordsToReview = new LinkedList<>();
-        currentWord = null;
-        answerShown = false;
-        
-        // Initialize UI state - only show Start Session button initially
+        if (menuController != null) {
+            menuController.setActiveSection("practice");
+        }
+
+        modeCombo.setItems(FXCollections.observableArrayList(PracticeMode.values()));
+        modeCombo.setValue(PracticeMode.FLUIDEZ);
+        modeCombo.valueProperty().addListener((obs, oldV, newV) -> refreshModeView());
+
+        resetSessionState();
         updateProgressDisplay();
         updateSessionStatsDisplay();
-        hideReviewButtons();
-        endSessionButton.setVisible(false);
-        showButton.setVisible(false);
-        nextButton.setVisible(false);
+        setInitialUiState();
     }
 
-    // Study session management methods
-    
-    /**
-     * Starts a new study session by loading words due for review
-     */
     @FXML
     public void startStudySession() {
-        try {
-            // Get words due for review from the spaced repetition service
-            wordsToReview = new LinkedList<>(spacedRepetitionService.getWordsForReview());
+        sessionWords = buildPracticeWordList();
+        currentIndex = 0;
+        wordsReviewed = 0;
+        correctAnswers = 0;
+        answerShown = false;
 
-            // Validación extra: filtra palabras con campos críticos nulos o vacíos
-            wordsToReview.removeIf(word ->
-                word.getTerm() == null || word.getTerm().isEmpty() ||
-                word.getTranslation() == null || word.getTranslation().isEmpty() ||
-                word.getState() < 0 ||
-                word.getReviewCount() < 0 || word.getSuccessCount() < 0
-            );
-
-            // Start a new study session
-            currentSession = spacedRepetitionService.startStudySession();
-
-            // Update UI for session start
-            updateUIForSessionStart();
-
-            if (wordsToReview.isEmpty()) {
-                // No words due for review
-                wordLabel.setText("No words due for review!");
-                translationLabel.setText("Check back later for more words to study.");
-                translationLabel.setVisible(true);
-                showButton.setDisable(true);
-                nextButton.setDisable(true);
-            } else {
-                // Show the first word
-                showNextWord();
-                showButton.setDisable(false);
-                nextButton.setDisable(false);
-            }
-        } catch (Exception e) {
-            // LOG DETALLADO DEL ERROR
-            System.err.println("[PracticeController] Error loading study session:");
-            e.printStackTrace();
-            wordLabel.setText("Error loading study session");
-            translationLabel.setText("Please try again later.\n" + e.getMessage());
+        if (sessionWords.isEmpty()) {
+            wordLabel.setText("No hay palabras para practicar");
+            translationLabel.setText("Agrega palabras con significado para empezar.");
             translationLabel.setVisible(true);
-            showButton.setDisable(true);
-            nextButton.setDisable(true);
-        }
-    }
-    
-    /**
-     * Displays the next word in the review queue
-     */
-    public void showNextWord() {
-        if (wordsToReview.isEmpty()) {
-            // No more words to review - end session
-            endStudySession();
+            translationLabel.setManaged(true);
             return;
         }
-        
-        // Get the next word from the queue
-        currentWord = wordsToReview.poll();
-        answerShown = false;
-        
-        // Display the English term
-        wordLabel.setText(currentWord.getTerm());
-        translationLabel.setText("Think of the translation, then click 'Show Answer'");
-        translationLabel.setVisible(true);
-        pronunciationLabel.setVisible(false);
-        
-        // Update word statistics display
-        updateWordStatsDisplay();
-        
-        // Update progress and session stats
-        updateProgressDisplay();
-        updateSessionStatsDisplay();
-        
-        // Update button states
-        showButton.setText("Show Answer");
-        showButton.setDisable(false);
-        hideReviewButtons();
+
+        startSessionButton.setVisible(false);
+        startSessionButton.setManaged(false);
+        nextButton.setVisible(true);
+        nextButton.setManaged(true);
+        endSessionButton.setVisible(true);
+        endSessionButton.setManaged(true);
+
+        showCurrentWord();
     }
 
-    /**
-     * Handles when user marks a word as correctly recalled
-     */
-    @FXML
-    public void markWordCorrect() {
-        if (currentWord == null || !answerShown) {
-            return; // Can only mark correct after showing answer
-        }
-        
-        try {
-            // Process the correct review result
-            spacedRepetitionService.processReviewResult(currentWord, true);
-            
-            // Update displays
-            updateProgressDisplay();
-            updateSessionStatsDisplay();
-            
-            // Move to next word
-            showNextWord();
-        } catch (Exception e) {
-            translationLabel.setText("Error processing review. Please try again.");
-        }
-    }
-    
-    /**
-     * Handles when user marks a word as incorrectly recalled
-     */
-    @FXML
-    public void markWordIncorrect() {
-        if (currentWord == null || !answerShown) {
-            return; // Can only mark incorrect after showing answer
-        }
-        
-        try {
-            // Process the incorrect review result
-            spacedRepetitionService.processReviewResult(currentWord, false);
-            
-            // Update displays
-            updateProgressDisplay();
-            updateSessionStatsDisplay();
-            
-            // Move to next word
-            showNextWord();
-        } catch (Exception e) {
-            translationLabel.setText("Error processing review. Please try again.");
-        }
-    }
-    
-    /**
-     * Shows the answer for the current word
-     */
     @FXML
     public void showAnswer() {
         if (currentWord == null || answerShown) {
             return;
         }
-        
+
         answerShown = true;
-        
-        // Display the translation
         translationLabel.setText(currentWord.getTranslation());
         translationLabel.setVisible(true);
-        
-        // Display pronunciation if available
-        if (currentWord.getPronunciation() != null && !currentWord.getPronunciation().isEmpty()) {
+        translationLabel.setManaged(true);
+
+        if (currentWord.getPronunciation() != null && !currentWord.getPronunciation().isBlank()) {
             pronunciationLabel.setText("[" + currentWord.getPronunciation() + "]");
             pronunciationLabel.setVisible(true);
+            pronunciationLabel.setManaged(true);
         }
-        
-        // Show review feedback buttons
-        showReviewButtons();
+
+        reviewButtonsBox.setVisible(true);
+        reviewButtonsBox.setManaged(true);
+        showButton.setVisible(false);
+        showButton.setManaged(false);
     }
 
-    /**
-     * Ends the current study session and shows results
-     */
+    @FXML
+    public void markWordCorrect() {
+        if (currentWord == null || !answerShown) {
+            return;
+        }
+        handleAnswerResult(true);
+    }
+
+    @FXML
+    public void markWordIncorrect() {
+        if (currentWord == null || !answerShown) {
+            return;
+        }
+        handleAnswerResult(false);
+    }
+
+    @FXML
+    public void submitChallengeAnswer() {
+        if (currentWord == null) {
+            return;
+        }
+
+        String typed = challengeInput.getText() != null ? challengeInput.getText().trim() : "";
+        boolean correct = normalize(typed).equals(normalize(currentWord.getTerm()));
+        handleAnswerResult(correct);
+    }
+
+    @FXML
+    public void selectChoice1() { selectChoice(choiceButton1); }
+    @FXML
+    public void selectChoice2() { selectChoice(choiceButton2); }
+    @FXML
+    public void selectChoice3() { selectChoice(choiceButton3); }
+    @FXML
+    public void selectChoice4() { selectChoice(choiceButton4); }
+
+    private void selectChoice(Button button) {
+        if (currentWord == null || button.getText() == null) {
+            return;
+        }
+        boolean correct = normalize(button.getText()).equals(normalize(currentWord.getTerm()));
+        handleAnswerResult(correct);
+    }
+
+    @FXML
+    public void skipWord() {
+        if (currentWord == null) {
+            return;
+        }
+        currentIndex++;
+        showCurrentWord();
+    }
+
     @FXML
     public void endStudySession() {
-        if (currentSession == null) {
+        if (sessionWords.isEmpty()) {
             return;
         }
-        
-        try {
-            // End the study session and get final statistics
-            spacedRepetitionService.endStudySession();
-            
-            // Show session summary
-            showSessionSummary();
-            
-            // Update UI for session end
-            updateUIForSessionEnd();
-            
-            // Reset session state
-            currentSession = null;
-            wordsToReview.clear();
-            currentWord = null;
-            answerShown = false;
-        } catch (Exception e) {
-            translationLabel.setText("Error ending session: " + e.getMessage());
-            translationLabel.setVisible(true);
-        }
+
+        wordLabel.setText("Sesion completada");
+        double accuracy = wordsReviewed == 0 ? 0.0 : (double) correctAnswers * 100.0 / wordsReviewed;
+        translationLabel.setText(String.format("Revisadas: %d | Correctas: %d | Precision: %.1f%%", wordsReviewed, correctAnswers, accuracy));
+        translationLabel.setVisible(true);
+        translationLabel.setManaged(true);
+
+        resetSessionState();
+        setInitialUiState();
+        updateProgressDisplay();
+        updateSessionStatsDisplay();
     }
-    
-    /**
-     * Displays session summary with performance statistics
-     */
-    public void showSessionSummary() {
-        if (currentSession == null) {
+
+    private void handleAnswerResult(boolean correct) {
+        wordsReviewed++;
+        if (correct) {
+            correctAnswers++;
+            translationLabel.setText("Correcto: " + currentWord.getTranslation());
+        } else {
+            translationLabel.setText("Incorrecto. Respuesta: " + currentWord.getTerm() + " = " + currentWord.getTranslation());
+        }
+        translationLabel.setVisible(true);
+        translationLabel.setManaged(true);
+
+        if (currentWord.getPronunciation() != null && !currentWord.getPronunciation().isBlank()) {
+            pronunciationLabel.setText("[" + currentWord.getPronunciation() + "]");
+            pronunciationLabel.setVisible(true);
+            pronunciationLabel.setManaged(true);
+        }
+
+        updateProgressDisplay();
+        updateSessionStatsDisplay();
+
+        currentIndex++;
+        showCurrentWord();
+    }
+
+    private void showCurrentWord() {
+        if (currentIndex >= sessionWords.size()) {
+            endStudySession();
             return;
         }
-        
-        try {
-            // Get session statistics
-            var sessionStats = spacedRepetitionService.getSessionStats();
-            
-            // Display summary information
-            StringBuilder summary = new StringBuilder();
-            summary.append("Session Complete!\n\n");
-            summary.append("Words Reviewed: ").append(sessionStats.getWordsReviewed()).append("\n");
-            summary.append("Correct Answers: ").append(sessionStats.getCorrectAnswers()).append("\n");
-            summary.append("Accuracy: ").append(String.format("%.1f%%", sessionStats.getAccuracyPercentage())).append("\n");
-            
-            if (sessionStats.getSessionDuration() > 0) {
-                summary.append("Session Duration: ").append(sessionStats.getSessionDuration()).append(" minutes\n");
-            }
-            
-            wordLabel.setText("Study Session Summary");
-            translationLabel.setText(summary.toString());
-            
-            // Disable action buttons
-            showButton.setDisable(true);
-            nextButton.setDisable(true);
-        } catch (Exception e) {
-            wordLabel.setText("Session Complete");
-            translationLabel.setText("Unable to load session statistics.");
-        }
+
+        currentWord = sessionWords.get(currentIndex);
+        answerShown = false;
+
+        pronunciationLabel.setVisible(false);
+        pronunciationLabel.setManaged(false);
+        reviewButtonsBox.setVisible(false);
+        reviewButtonsBox.setManaged(false);
+        choiceBox.setVisible(false);
+        choiceBox.setManaged(false);
+        challengeBox.setVisible(false);
+        challengeBox.setManaged(false);
+        challengeInput.clear();
+
+        updateProgressDisplay();
+        updateSessionStatsDisplay();
+        refreshModeView();
     }
-    
-    /**
-     * Gets progress information for ongoing session
-     */
-    public String getSessionProgress() {
-        if (currentSession == null) {
-            return "No active session";
+
+    private void refreshModeView() {
+        PracticeMode mode = modeCombo.getValue() != null ? modeCombo.getValue() : PracticeMode.FLUIDEZ;
+        if (currentWord == null) {
+            return;
         }
-        
-        try {
-            var sessionStats = spacedRepetitionService.getSessionStats();
-            int remaining = wordsToReview.size();
-            int reviewed = sessionStats.getWordsReviewed();
-            int total = reviewed + remaining;
-            
-            return String.format("Progress: %d/%d words (%d remaining)", 
-                reviewed, total, remaining);
-        } catch (Exception e) {
-            return "Progress unavailable";
+
+        switch (mode) {
+            case FLUIDEZ:
+                wordLabel.setText(currentWord.getTerm());
+                translationLabel.setText("Piensa el significado y luego presiona 'Show Answer'.");
+                translationLabel.setVisible(true);
+                translationLabel.setManaged(true);
+                showButton.setVisible(true);
+                showButton.setManaged(true);
+                break;
+
+            case DESAFIO:
+                wordLabel.setText("Completa la palabra para:");
+                translationLabel.setText(currentWord.getTranslation());
+                translationLabel.setVisible(true);
+                translationLabel.setManaged(true);
+                challengeBox.setVisible(true);
+                challengeBox.setManaged(true);
+                showButton.setVisible(false);
+                showButton.setManaged(false);
+                break;
+
+            case RELAJADO:
+                wordLabel.setText("Selecciona la palabra correcta para:");
+                translationLabel.setText(currentWord.getTranslation());
+                translationLabel.setVisible(true);
+                translationLabel.setManaged(true);
+                buildMultipleChoiceOptions();
+                choiceBox.setVisible(true);
+                choiceBox.setManaged(true);
+                showButton.setVisible(false);
+                showButton.setManaged(false);
+                break;
         }
     }
 
-    // UI Update Methods
-    
-    /**
-     * Updates the progress display with current session information
-     */
+    private void buildMultipleChoiceOptions() {
+        List<String> options = new ArrayList<>();
+        options.add(currentWord.getTerm());
+
+        List<String> distractors = new ArrayList<>();
+        for (Word word : sessionWords) {
+            if (word == currentWord) {
+                continue;
+            }
+            if (word.getTerm() != null && !word.getTerm().isBlank()) {
+                distractors.add(word.getTerm());
+            }
+        }
+
+        Collections.shuffle(distractors);
+        for (String d : distractors) {
+            if (options.size() >= 4) {
+                break;
+            }
+            if (!containsIgnoreCase(options, d)) {
+                options.add(d);
+            }
+        }
+
+        while (options.size() < 4) {
+            options.add(currentWord.getTerm());
+        }
+
+        Collections.shuffle(options);
+        choiceButton1.setText(options.get(0));
+        choiceButton2.setText(options.get(1));
+        choiceButton3.setText(options.get(2));
+        choiceButton4.setText(options.get(3));
+    }
+
+    private boolean containsIgnoreCase(List<String> list, String value) {
+        for (String item : list) {
+            if (item != null && item.equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<Word> buildPracticeWordList() {
+        Set<String> seen = new LinkedHashSet<>();
+        List<Word> words = new ArrayList<>();
+
+        for (Word word : wordService.listWords()) {
+            if (!isValidWord(word)) {
+                continue;
+            }
+            String key = normalize(word.getTerm());
+            if (!seen.contains(key)) {
+                seen.add(key);
+                words.add(word);
+            }
+        }
+
+        Collections.shuffle(words);
+        int maxSessionWords = Math.min(words.size(), 30);
+        return new ArrayList<>(words.subList(0, maxSessionWords));
+    }
+
+    private boolean isValidWord(Word word) {
+        return word != null
+                && word.getTerm() != null && !word.getTerm().trim().isEmpty()
+                && word.getTranslation() != null && !word.getTranslation().trim().isEmpty();
+    }
+
+    private void resetSessionState() {
+        sessionWords.clear();
+        currentWord = null;
+        currentIndex = 0;
+        wordsReviewed = 0;
+        correctAnswers = 0;
+        answerShown = false;
+    }
+
+    private void setInitialUiState() {
+        startSessionButton.setVisible(true);
+        startSessionButton.setManaged(true);
+        showButton.setVisible(false);
+        showButton.setManaged(false);
+        nextButton.setVisible(false);
+        nextButton.setManaged(false);
+        endSessionButton.setVisible(false);
+        endSessionButton.setManaged(false);
+        reviewButtonsBox.setVisible(false);
+        reviewButtonsBox.setManaged(false);
+        choiceBox.setVisible(false);
+        choiceBox.setManaged(false);
+        challengeBox.setVisible(false);
+        challengeBox.setManaged(false);
+    }
+
     private void updateProgressDisplay() {
-        if (currentSession == null) {
+        if (sessionWords.isEmpty()) {
             progressLabel.setText("Progress: Ready to start");
             progressBar.setProgress(0.0);
             return;
         }
-        
-        try {
-            var sessionStats = spacedRepetitionService.getSessionStats();
-            int remaining = wordsToReview.size();
-            int reviewed = sessionStats.getWordsReviewed();
-            int total = reviewed + remaining;
-            
-            if (total > 0) {
-                double progress = (double) reviewed / total;
-                progressBar.setProgress(progress);
-                progressLabel.setText(String.format("Progress: %d/%d words (%d remaining)", 
-                    reviewed, total, remaining));
-            } else {
-                progressBar.setProgress(1.0);
-                progressLabel.setText("No words to review");
-            }
-        } catch (Exception e) {
-            progressLabel.setText("Progress: Unavailable");
-            progressBar.setProgress(0.0);
-        }
+
+        int total = sessionWords.size();
+        int done = Math.min(currentIndex, total);
+        int remaining = Math.max(0, total - done);
+        progressBar.setProgress(total == 0 ? 0.0 : (double) done / total);
+        progressLabel.setText(String.format("Progress: %d/%d words (%d remaining)", done, total, remaining));
     }
-    
-    /**
-     * Updates the session statistics display
-     */
+
     private void updateSessionStatsDisplay() {
-        if (currentSession == null) {
+        if (sessionWords.isEmpty()) {
             sessionStatsLabel.setText("Session Stats: Not started");
             return;
         }
-        
-        try {
-            var sessionStats = spacedRepetitionService.getSessionStats();
-            int correct = sessionStats.getCorrectAnswers();
-            int total = sessionStats.getWordsReviewed();
-            int incorrect = total - correct;
-            
-            sessionStatsLabel.setText(String.format("Session Stats: %d correct, %d incorrect", 
-                correct, incorrect));
-        } catch (Exception e) {
-            sessionStatsLabel.setText("Session Stats: Unavailable");
+        int incorrect = Math.max(0, wordsReviewed - correctAnswers);
+        sessionStatsLabel.setText(String.format("Session Stats: %d correct, %d incorrect", correctAnswers, incorrect));
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return "";
         }
-    }
-    
-    /**
-     * Updates word-specific statistics and review information
-     */
-    private void updateWordStatsDisplay() {
-        if (currentWord == null) {
-            wordStatsLabel.setText("");
-            nextReviewLabel.setText("");
-            reviewHistoryLabel.setText("");
-            return;
-        }
-        
-        try {
-            // Display word statistics
-            double successRate = currentWord.getSuccessRate();
-            int reviewCount = currentWord.getReviewCount();
-            wordStatsLabel.setText(String.format("Word Stats: %d reviews, %.1f%% success rate", 
-                reviewCount, successRate * 100));
-            
-            // Display next review information
-            if (currentWord.getNextReviewDate() != null) {
-                nextReviewLabel.setText("Next review: " + currentWord.getNextReviewDate().toString());
-            } else {
-                nextReviewLabel.setText("Next review: After this session");
-            }
-            
-            // Display review history
-            if (reviewCount > 0) {
-                reviewHistoryLabel.setText(String.format("Last reviewed: %s (State: %d)", 
-                    currentWord.getLastReview() != null ? currentWord.getLastReview() : "Never", 
-                    currentWord.getState()));
-            } else {
-                reviewHistoryLabel.setText("First time reviewing this word");
-            }
-        } catch (Exception e) {
-            wordStatsLabel.setText("Word stats unavailable");
-            nextReviewLabel.setText("");
-            reviewHistoryLabel.setText("");
-        }
-    }
-    
-    /**
-     * Shows the review feedback buttons
-     */
-    private void showReviewButtons() {
-        reviewButtonsBox.setVisible(true);
-        showButton.setVisible(false);
-    }
-    
-    /**
-     * Hides the review feedback buttons
-     */
-    private void hideReviewButtons() {
-        reviewButtonsBox.setVisible(false);
-        showButton.setVisible(true);
-    }
-    
-    /**
-     * Updates UI state for session start
-     */
-    private void updateUIForSessionStart() {
-        startSessionButton.setVisible(false);
-        endSessionButton.setVisible(true);
-        showButton.setVisible(true);
-        nextButton.setVisible(true); // Show skip button during session
-        hideReviewButtons();
-        updateProgressDisplay();
-        updateSessionStatsDisplay();
-    }
-    
-    /**
-     * Updates UI state for session end
-     */
-    private void updateUIForSessionEnd() {
-        startSessionButton.setVisible(true);
-        endSessionButton.setVisible(false);
-        hideReviewButtons();
-        showButton.setVisible(false);
-        nextButton.setVisible(false);
-        wordStatsLabel.setText("");
-        nextReviewLabel.setText("");
-        reviewHistoryLabel.setText("");
-        updateProgressDisplay();
-        updateSessionStatsDisplay();
-    }
-    
-    // FXML Action Methods
-    
-    /**
-     * Handles skip word action
-     */
-    @FXML
-    public void skipWord() {
-        if (currentWord != null && currentSession != null) {
-            // Use the SpacedRepetitionService skip functionality
-            Word nextWord = spacedRepetitionService.skipCurrentWord();
-            if (nextWord != null) {
-                showNextWord();
-            } else {
-                // No more words, end session
-                endStudySession();
-            }
-            updateProgressDisplay();
-            updateSessionStatsDisplay();
-        }
+        String lowered = value.trim().toLowerCase();
+        String withoutAccents = Normalizer.normalize(lowered, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return withoutAccents.replaceAll("[^\\p{L}\\p{N}]", "");
     }
 }
