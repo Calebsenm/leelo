@@ -7,6 +7,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="com.leelo.controller.PracticeController" styleClass="root" stylesheets="@css/main.css">
@@ -14,53 +15,51 @@
         <fx:include fx:id="menu" source="side_menu.fxml" />
     </left>
     <center>
-        <VBox alignment="CENTER" styleClass="padding-md, spacing-lg">
+        <VBox alignment="TOP_CENTER" styleClass="practice-screen">
 
-            <VBox alignment="CENTER" styleClass="spacing-sm, card, padding-sm">
+            <VBox alignment="CENTER" styleClass="card, practice-header-card">
+                <Label text="Practica de Vocabulario" styleClass="title-lg, text-primary" />
                 <HBox alignment="CENTER" styleClass="spacing-md">
                     <Label text="Modo:" styleClass="text-sm, text-secondary" />
-                    <ComboBox fx:id="modeCombo" prefWidth="250.0" />
+                    <ComboBox fx:id="modeCombo" prefWidth="220.0" />
                 </HBox>
-                <ProgressBar fx:id="progressBar" prefWidth="500.0" prefHeight="8.0" progress="0.0" styleClass="progress-primary" />
+                <Label fx:id="modeDescriptionLabel" text="Selecciona un modo y empieza la practica." styleClass="text-sm, text-secondary" wrapText="true" />
+                <ProgressBar fx:id="progressBar" prefWidth="620.0" prefHeight="8.0" progress="0.0" styleClass="progress-primary" />
                 <Label fx:id="progressLabel" text="Progress: Ready to start" styleClass="text-sm, text-secondary" />
             </VBox>
 
-            <VBox alignment="CENTER" styleClass="spacing-md, card, padding-md" minHeight="220" prefWidth="680">
+            <VBox alignment="CENTER" styleClass="card, practice-main-card">
                 <Label fx:id="wordLabel" text="Ready to practice" styleClass="title-xxl, text-primary, text-bold" textAlignment="CENTER" wrapText="true" />
                 <Label fx:id="translationLabel" text="" styleClass="title-lg, text-success, text-bold" visible="false" managed="false" textAlignment="CENTER" wrapText="true" />
                 <Label fx:id="pronunciationLabel" text="" styleClass="text-lg, text-secondary, text-italic" visible="false" managed="false" textAlignment="CENTER" />
+                <Label fx:id="feedbackLabel" text="" styleClass="text-sm" visible="false" managed="false" />
 
-                <VBox fx:id="challengeBox" alignment="CENTER" styleClass="spacing-sm" visible="false" managed="false">
-                    <TextField fx:id="challengeInput" prefWidth="360" promptText="Write the missing word" />
-                    <Button fx:id="submitAnswerButton" text="Submit" onAction="#submitChallengeAnswer" styleClass="btn" prefWidth="180.0" />
+                <VBox fx:id="challengeBox" alignment="CENTER" styleClass="practice-answer-box" visible="false" managed="false">
+                    <TextField fx:id="challengeInput" prefWidth="280" promptText="Escribe la palabra correcta" styleClass="form-input, practice-input" />
+                    <Button fx:id="submitAnswerButton" text="Verificar" onAction="#submitChallengeAnswer" styleClass="btn" prefWidth="140.0" />
                 </VBox>
 
-                <VBox fx:id="choiceBox" alignment="CENTER" styleClass="spacing-sm" visible="false" managed="false">
-                    <Button fx:id="choiceButton1" onAction="#selectChoice1" styleClass="btn" prefWidth="360.0" />
-                    <Button fx:id="choiceButton2" onAction="#selectChoice2" styleClass="btn" prefWidth="360.0" />
-                    <Button fx:id="choiceButton3" onAction="#selectChoice3" styleClass="btn" prefWidth="360.0" />
-                    <Button fx:id="choiceButton4" onAction="#selectChoice4" styleClass="btn" prefWidth="360.0" />
-                </VBox>
+                <TilePane fx:id="choiceBox" alignment="CENTER" prefColumns="2" hgap="10.0" vgap="10.0" styleClass="practice-choice-grid" visible="false" managed="false">
+                    <Button fx:id="choiceButton1" onAction="#selectChoice1" styleClass="btn, practice-option-btn" prefWidth="250.0" />
+                    <Button fx:id="choiceButton2" onAction="#selectChoice2" styleClass="btn, practice-option-btn" prefWidth="250.0" />
+                    <Button fx:id="choiceButton3" onAction="#selectChoice3" styleClass="btn, practice-option-btn" prefWidth="250.0" />
+                    <Button fx:id="choiceButton4" onAction="#selectChoice4" styleClass="btn, practice-option-btn" prefWidth="250.0" />
+                </TilePane>
             </VBox>
 
-            <VBox alignment="CENTER" styleClass="spacing-md">
+            <VBox alignment="CENTER" styleClass="practice-actions">
                 <VBox alignment="CENTER" styleClass="spacing-sm">
-                    <Button fx:id="startSessionButton" text="Start Practice" onAction="#startStudySession" styleClass="btn" prefWidth="280.0" prefHeight="52.0" />
-                    <Button fx:id="showButton" text="Show Answer" onAction="#showAnswer" styleClass="btn" prefWidth="280.0" prefHeight="46.0" visible="false" managed="false" />
+                    <Button fx:id="startSessionButton" text="Iniciar practica" onAction="#startStudySession" styleClass="btn" prefWidth="280.0" prefHeight="52.0" />
                 </VBox>
-
-                <HBox fx:id="reviewButtonsBox" styleClass="spacing-lg" alignment="CENTER" visible="false" managed="false">
-                    <Button fx:id="correctButton" text="I knew it" onAction="#markWordCorrect" styleClass="btn" prefWidth="180.0" prefHeight="58.0" />
-                    <Button fx:id="incorrectButton" text="I did not know" onAction="#markWordIncorrect" styleClass="btn" prefWidth="180.0" prefHeight="58.0" />
-                </HBox>
 
                 <HBox styleClass="spacing-md" alignment="CENTER">
-                    <Button fx:id="nextButton" text="Skip" onAction="#skipWord" styleClass="btn" prefWidth="110.0" visible="false" managed="false" />
-                    <Button fx:id="endSessionButton" text="Finish" onAction="#endStudySession" styleClass="btn" prefWidth="120.0" visible="false" managed="false" />
+                    <Button fx:id="nextButton" text="Saltar" onAction="#skipWord" styleClass="btn" prefWidth="110.0" visible="false" managed="false" />
+                    <Button fx:id="continueButton" text="Continuar" onAction="#continueAfterFeedback" styleClass="btn" prefWidth="120.0" visible="false" managed="false" />
+                    <Button fx:id="endSessionButton" text="Finalizar" onAction="#endStudySession" styleClass="btn" prefWidth="120.0" visible="false" managed="false" />
                 </HBox>
             </VBox>
 
-            <Label fx:id="sessionStatsLabel" text="" styleClass="text-xs, text-muted" />
+            <Label fx:id="sessionStatsLabel" text="" styleClass="text-xs, text-muted, practice-stats" />
         </VBox>
     </center>
 </BorderPane>

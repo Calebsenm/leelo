@@ -50,7 +50,7 @@
     -fx-font-style: italic;
 }
 
-/* BotÃ³n minimalista universal */
+/* Botón minimalista universal */
 .btn {
     -fx-background-color: #ffffff;
     -fx-text-fill: #1a1a1a;
@@ -113,7 +113,7 @@
     -fx-transition: all 0.2s ease;
 }
 
-/* Colores de Estado MÃ¡s Claros */
+/* Colores de Estado Más Claros */
 .text-success {
     -fx-text-fill: #059669;
 }

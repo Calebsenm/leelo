@@ -2,8 +2,10 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane styleClass="page-container"
@@ -13,26 +15,34 @@
             fx:controller="com.leelo.controller.addUrlController">
 
     <center>
-        <VBox alignment="CENTER" spacing="12" styleClass="card max-content-width padding-lg"
-              prefWidth="450" maxWidth="450">
+        <VBox alignment="CENTER" spacing="12" styleClass="card, padding-lg" prefWidth="470" maxWidth="470">
             <children>
                 <Label styleClass="title-lg" text="Agregar URL" />
+                <Label styleClass="text-sm, text-secondary" text="Importa automaticamente el contenido principal de una pagina web." wrapText="true" />
 
                 <VBox spacing="8" styleClass="section">
                     <children>
-                        <Label styleClass="form-label" text="Título *" />
-                        <TextField fx:id="titleField" promptText="Título descriptivo" styleClass="form-input" />
+                        <Label styleClass="form-label" text="Titulo (opcional)" />
+                        <TextField fx:id="titleField" promptText="Si lo dejas vacio, se usa el titulo de la pagina" styleClass="form-input" />
                     </children>
                 </VBox>
 
                 <VBox spacing="8" styleClass="section">
                     <children>
                         <Label styleClass="form-label" text="URL *" />
-                        <TextField fx:id="urlField" promptText="https://ejemplo.com" styleClass="form-input" />
+                        <TextField fx:id="urlField" promptText="https://ejemplo.com/articulo" styleClass="form-input" />
                     </children>
                 </VBox>
 
-                <Button fx:id="saveButton" prefWidth="140" styleClass="btn" text="Guardar" />
+                <Label fx:id="statusLabel" styleClass="text-sm" text="" visible="false" managed="false" wrapText="true" />
+
+                <HBox alignment="CENTER_RIGHT" spacing="10">
+                    <children>
+                        <ProgressIndicator fx:id="loadingIndicator" maxWidth="20" maxHeight="20" visible="false" managed="false" />
+                        <Button fx:id="cancelButton" prefWidth="110" styleClass="btn, btn-secondary" text="Cancelar" />
+                        <Button fx:id="saveButton" prefWidth="170" styleClass="btn, btn-primary" text="Importar contenido" />
+                    </children>
+                </HBox>
             </children>
         </VBox>
     </center>

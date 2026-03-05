@@ -2,15 +2,18 @@ package com.leelo.controller;
 
 import com.leelo.model.Word;
 import com.leelo.service.WordService;
+import javafx.animation.PauseTransition;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -20,10 +23,11 @@ import java.util.List;
 import java.util.Set;
 
 public class PracticeController {
+    private static final int CORRECT_AUTO_ADVANCE_DELAY_MS = 1400;
+
     private enum PracticeMode {
-        FLUIDEZ("Modo Fluidez"),
         DESAFIO("Modo Desafio (Cloze)"),
-        RELAJADO("Modo Repaso Relajado");
+        RELAJADO("Modo Seleccion Rapida");
 
         private final String label;
 
@@ -40,35 +44,36 @@ public class PracticeController {
     @FXML private Label wordLabel;
     @FXML private Label translationLabel;
     @FXML private Label pronunciationLabel;
+    @FXML private Label modeDescriptionLabel;
+    @FXML private Label feedbackLabel;
     @FXML private Label progressLabel;
     @FXML private Label sessionStatsLabel;
-    @FXML private Button showButton;
     @FXML private Button nextButton;
     @FXML private Button startSessionButton;
     @FXML private Button endSessionButton;
-    @FXML private Button correctButton;
-    @FXML private Button incorrectButton;
     @FXML private ProgressBar progressBar;
-    @FXML private HBox reviewButtonsBox;
     @FXML private ComboBox<PracticeMode> modeCombo;
     @FXML private VBox challengeBox;
     @FXML private TextField challengeInput;
     @FXML private Button submitAnswerButton;
-    @FXML private VBox choiceBox;
+    @FXML private TilePane choiceBox;
     @FXML private Button choiceButton1;
     @FXML private Button choiceButton2;
     @FXML private Button choiceButton3;
     @FXML private Button choiceButton4;
+    @FXML private Button continueButton;
     @FXML private SideMenuController menuController;
 
     private final WordService wordService = new WordService();
 
     private List<Word> sessionWords = new ArrayList<>();
     private Word currentWord;
-    private boolean answerShown;
     private int currentIndex;
     private int wordsReviewed;
     private int correctAnswers;
+    private boolean transitioning;
+    private boolean waitingManualAdvance;
+    private PauseTransition autoAdvanceTransition;
 
     @FXML
     public void initialize() {
@@ -77,8 +82,9 @@ public class PracticeController {
         }
 
         modeCombo.setItems(FXCollections.observableArrayList(PracticeMode.values()));
-        modeCombo.setValue(PracticeMode.FLUIDEZ);
+        modeCombo.setValue(PracticeMode.DESAFIO);
         modeCombo.valueProperty().addListener((obs, oldV, newV) -> refreshModeView());
+        challengeInput.setOnAction(e -> submitChallengeAnswer());
 
         resetSessionState();
         updateProgressDisplay();
@@ -92,13 +98,16 @@ public class PracticeController {
         currentIndex = 0;
         wordsReviewed = 0;
         correctAnswers = 0;
-        answerShown = false;
+        transitioning = false;
+        waitingManualAdvance = false;
 
         if (sessionWords.isEmpty()) {
             wordLabel.setText("No hay palabras para practicar");
             translationLabel.setText("Agrega palabras con significado para empezar.");
             translationLabel.setVisible(true);
             translationLabel.setManaged(true);
+            feedbackLabel.setVisible(false);
+            feedbackLabel.setManaged(false);
             return;
         }
 
@@ -113,47 +122,8 @@ public class PracticeController {
     }
 
     @FXML
-    public void showAnswer() {
-        if (currentWord == null || answerShown) {
-            return;
-        }
-
-        answerShown = true;
-        translationLabel.setText(currentWord.getTranslation());
-        translationLabel.setVisible(true);
-        translationLabel.setManaged(true);
-
-        if (currentWord.getPronunciation() != null && !currentWord.getPronunciation().isBlank()) {
-            pronunciationLabel.setText("[" + currentWord.getPronunciation() + "]");
-            pronunciationLabel.setVisible(true);
-            pronunciationLabel.setManaged(true);
-        }
-
-        reviewButtonsBox.setVisible(true);
-        reviewButtonsBox.setManaged(true);
-        showButton.setVisible(false);
-        showButton.setManaged(false);
-    }
-
-    @FXML
-    public void markWordCorrect() {
-        if (currentWord == null || !answerShown) {
-            return;
-        }
-        handleAnswerResult(true);
-    }
-
-    @FXML
-    public void markWordIncorrect() {
-        if (currentWord == null || !answerShown) {
-            return;
-        }
-        handleAnswerResult(false);
-    }
-
-    @FXML
     public void submitChallengeAnswer() {
-        if (currentWord == null) {
+        if (currentWord == null || transitioning) {
             return;
         }
 
@@ -172,20 +142,29 @@ public class PracticeController {
     public void selectChoice4() { selectChoice(choiceButton4); }
 
     private void selectChoice(Button button) {
-        if (currentWord == null || button.getText() == null) {
+        if (currentWord == null || button.getText() == null || transitioning) {
             return;
         }
         boolean correct = normalize(button.getText()).equals(normalize(currentWord.getTerm()));
+        highlightChoiceResult(button, correct);
         handleAnswerResult(correct);
     }
 
     @FXML
     public void skipWord() {
-        if (currentWord == null) {
+        if (currentWord == null || transitioning) {
             return;
         }
         currentIndex++;
         showCurrentWord();
+    }
+
+    @FXML
+    public void continueAfterFeedback() {
+        if (!transitioning || !waitingManualAdvance) {
+            return;
+        }
+        proceedToNextWord();
     }
 
     @FXML
@@ -199,6 +178,8 @@ public class PracticeController {
         translationLabel.setText(String.format("Revisadas: %d | Correctas: %d | Precision: %.1f%%", wordsReviewed, correctAnswers, accuracy));
         translationLabel.setVisible(true);
         translationLabel.setManaged(true);
+        feedbackLabel.setVisible(false);
+        feedbackLabel.setManaged(false);
 
         resetSessionState();
         setInitialUiState();
@@ -207,12 +188,17 @@ public class PracticeController {
     }
 
     private void handleAnswerResult(boolean correct) {
+        transitioning = true;
+        setInteractionDisabled(true);
+
         wordsReviewed++;
         if (correct) {
             correctAnswers++;
             translationLabel.setText("Correcto: " + currentWord.getTranslation());
+            showFeedback("Bien hecho", true);
         } else {
             translationLabel.setText("Incorrecto. Respuesta: " + currentWord.getTerm() + " = " + currentWord.getTranslation());
+            showFeedback("Respuesta incorrecta", false);
         }
         translationLabel.setVisible(true);
         translationLabel.setManaged(true);
@@ -226,7 +212,33 @@ public class PracticeController {
         updateProgressDisplay();
         updateSessionStatsDisplay();
 
+        if (!correct) {
+            waitingManualAdvance = true;
+            continueButton.setVisible(true);
+            continueButton.setManaged(true);
+            continueButton.setDisable(false);
+            modeDescriptionLabel.setText("Incorrecto. Revisa la respuesta y presiona Continuar.");
+            return;
+        }
+
+        waitingManualAdvance = false;
+        modeDescriptionLabel.setText("Correcto. Avanzando a la siguiente palabra...");
+        autoAdvanceTransition = new PauseTransition(Duration.millis(CORRECT_AUTO_ADVANCE_DELAY_MS));
+        autoAdvanceTransition.setOnFinished(e -> proceedToNextWord());
+        autoAdvanceTransition.play();
+    }
+
+    private void proceedToNextWord() {
+        if (autoAdvanceTransition != null) {
+            autoAdvanceTransition.stop();
+            autoAdvanceTransition = null;
+        }
+        continueButton.setVisible(false);
+        continueButton.setManaged(false);
         currentIndex++;
+        transitioning = false;
+        waitingManualAdvance = false;
+        setInteractionDisabled(false);
         showCurrentWord();
     }
 
@@ -237,60 +249,63 @@ public class PracticeController {
         }
 
         currentWord = sessionWords.get(currentIndex);
-        answerShown = false;
 
         pronunciationLabel.setVisible(false);
         pronunciationLabel.setManaged(false);
-        reviewButtonsBox.setVisible(false);
-        reviewButtonsBox.setManaged(false);
         choiceBox.setVisible(false);
         choiceBox.setManaged(false);
         challengeBox.setVisible(false);
         challengeBox.setManaged(false);
+        feedbackLabel.setVisible(false);
+        feedbackLabel.setManaged(false);
+        continueButton.setVisible(false);
+        continueButton.setManaged(false);
+        clearChoiceStyles();
         challengeInput.clear();
 
         updateProgressDisplay();
         updateSessionStatsDisplay();
         refreshModeView();
+        Platform.runLater(() -> {
+            if (modeCombo.getValue() == PracticeMode.DESAFIO) {
+                challengeInput.requestFocus();
+            }
+        });
     }
 
     private void refreshModeView() {
-        PracticeMode mode = modeCombo.getValue() != null ? modeCombo.getValue() : PracticeMode.FLUIDEZ;
+        PracticeMode mode = modeCombo.getValue() != null ? modeCombo.getValue() : PracticeMode.DESAFIO;
         if (currentWord == null) {
             return;
         }
 
-        switch (mode) {
-            case FLUIDEZ:
-                wordLabel.setText(currentWord.getTerm());
-                translationLabel.setText("Piensa el significado y luego presiona 'Show Answer'.");
-                translationLabel.setVisible(true);
-                translationLabel.setManaged(true);
-                showButton.setVisible(true);
-                showButton.setManaged(true);
-                break;
+        challengeBox.setVisible(false);
+        challengeBox.setManaged(false);
+        choiceBox.setVisible(false);
+        choiceBox.setManaged(false);
+        clearChoiceStyles();
+        challengeInput.clear();
 
+        switch (mode) {
             case DESAFIO:
                 wordLabel.setText("Completa la palabra para:");
+                modeDescriptionLabel.setText("Escribe la palabra correcta. Si aciertas, avanza sola.");
                 translationLabel.setText(currentWord.getTranslation());
                 translationLabel.setVisible(true);
                 translationLabel.setManaged(true);
                 challengeBox.setVisible(true);
                 challengeBox.setManaged(true);
-                showButton.setVisible(false);
-                showButton.setManaged(false);
                 break;
 
             case RELAJADO:
                 wordLabel.setText("Selecciona la palabra correcta para:");
+                modeDescriptionLabel.setText("Elige la opcion correcta. Si aciertas, avanza sola.");
                 translationLabel.setText(currentWord.getTranslation());
                 translationLabel.setVisible(true);
                 translationLabel.setManaged(true);
                 buildMultipleChoiceOptions();
                 choiceBox.setVisible(true);
                 choiceBox.setManaged(true);
-                showButton.setVisible(false);
-                showButton.setManaged(false);
                 break;
         }
     }
@@ -371,24 +386,85 @@ public class PracticeController {
         currentIndex = 0;
         wordsReviewed = 0;
         correctAnswers = 0;
-        answerShown = false;
+        transitioning = false;
+        waitingManualAdvance = false;
+        if (autoAdvanceTransition != null) {
+            autoAdvanceTransition.stop();
+            autoAdvanceTransition = null;
+        }
     }
 
     private void setInitialUiState() {
         startSessionButton.setVisible(true);
         startSessionButton.setManaged(true);
-        showButton.setVisible(false);
-        showButton.setManaged(false);
         nextButton.setVisible(false);
         nextButton.setManaged(false);
         endSessionButton.setVisible(false);
         endSessionButton.setManaged(false);
-        reviewButtonsBox.setVisible(false);
-        reviewButtonsBox.setManaged(false);
         choiceBox.setVisible(false);
         choiceBox.setManaged(false);
         challengeBox.setVisible(false);
         challengeBox.setManaged(false);
+        continueButton.setVisible(false);
+        continueButton.setManaged(false);
+        feedbackLabel.setVisible(false);
+        feedbackLabel.setManaged(false);
+        modeDescriptionLabel.setText("Selecciona un modo y empieza la practica.");
+    }
+
+    private void setInteractionDisabled(boolean disabled) {
+        submitAnswerButton.setDisable(disabled);
+        challengeInput.setDisable(disabled);
+        choiceButton1.setDisable(disabled);
+        choiceButton2.setDisable(disabled);
+        choiceButton3.setDisable(disabled);
+        choiceButton4.setDisable(disabled);
+        nextButton.setDisable(disabled);
+        continueButton.setDisable(disabled);
+        modeCombo.setDisable(disabled);
+    }
+
+    private void highlightChoiceResult(Button selected, boolean correct) {
+        clearChoiceStyles();
+        if (selected != null) {
+            selected.getStyleClass().add(correct ? "practice-option-correct" : "practice-option-error");
+        }
+        if (!correct) {
+            Button right = findCorrectChoiceButton();
+            if (right != null && right != selected) {
+                right.getStyleClass().add("practice-option-correct");
+            }
+        }
+    }
+
+    private Button findCorrectChoiceButton() {
+        List<Button> buttons = List.of(choiceButton1, choiceButton2, choiceButton3, choiceButton4);
+        String target = normalize(currentWord != null ? currentWord.getTerm() : "");
+        for (Button b : buttons) {
+            if (b != null && normalize(b.getText()).equals(target)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    private void clearChoiceStyles() {
+        List<Button> buttons = List.of(choiceButton1, choiceButton2, choiceButton3, choiceButton4);
+        for (Button b : buttons) {
+            if (b == null) {
+                continue;
+            }
+            b.getStyleClass().remove("practice-option-correct");
+            b.getStyleClass().remove("practice-option-error");
+        }
+    }
+
+    private void showFeedback(String message, boolean success) {
+        feedbackLabel.setText(message);
+        feedbackLabel.getStyleClass().removeAll("practice-feedback-success", "practice-feedback-error");
+        feedbackLabel.getStyleClass().add(success ? "practice-feedback-success" : "practice-feedback-error");
+        feedbackLabel.setVisible(true);
+        feedbackLabel.setManaged(true);
     }
 
     private void updateProgressDisplay() {
