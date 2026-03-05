@@ -3,17 +3,38 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox styleClass="form-compact" alignment="CENTER" spacing="10" stylesheets="@css/main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.addWordController">
-    <children>
-        <TextField fx:id="termField" maxWidth="180.0" promptText="Término" />
-        <TextField fx:id="translationField" maxWidth="180.0" promptText="Traducción" />
-        <TextField fx:id="pronunciationField" maxWidth="180.0" promptText="Pronunciación" />
-        <TextField fx:id="urlImgField" maxWidth="180.0" promptText="Url img - Opcional" />
-        <ComboBox fx:id="stateCombo" maxWidth="180.0" />
-        <Button fx:id="saveButton" styleClass="btn" maxWidth="180.0" minHeight="32.0" text="Guardar" />
-        <Label fx:id="messageLabel" styleClass="text-xs, text-error" text="" visible="false" />
-    </children>
-</VBox>
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" stylesheets="@css/main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.addWordController">
+    <content>
+        <VBox fx:id="modalRoot" alignment="TOP_CENTER" spacing="12" prefWidth="390.0" minWidth="390.0" styleClass="form-compact" style="-fx-padding: 16; -fx-background-radius: 10; -fx-border-radius: 10;">
+            <children>
+                <Label fx:id="titleLabel" text="Editar palabra" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #1f2937;" />
+                <Label text="Gestiona significados y estado de aprendizaje" styleClass="text-xs, text-secondary" />
+                <Separator prefWidth="340" />
+
+                <Label text="Palabra" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
+                <TextField fx:id="termField" maxWidth="340.0" promptText="Termino" />
+
+                <Label text="Significados" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
+                <VBox fx:id="meaningsContainer" spacing="8" maxWidth="340.0" prefWidth="340.0" />
+                <Button fx:id="addMeaningButton" styleClass="btn" maxWidth="340.0" text="+ Agregar significado" />
+
+                <Label text="Pronunciacion (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
+                <TextField fx:id="pronunciationField" maxWidth="340.0" promptText="Pronunciacion" />
+
+                <Label text="URL imagen (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
+                <TextField fx:id="urlImgField" maxWidth="340.0" promptText="https://..." />
+
+                <Label text="Estado" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
+                <ComboBox fx:id="stateCombo" maxWidth="340.0" />
+
+                <Button fx:id="saveButton" styleClass="btn" maxWidth="340.0" minHeight="34.0" text="Guardar palabra" />
+                <Label fx:id="messageLabel" styleClass="text-xs, text-error" text="" visible="false" />
+            </children>
+        </VBox>
+    </content>
+</ScrollPane>

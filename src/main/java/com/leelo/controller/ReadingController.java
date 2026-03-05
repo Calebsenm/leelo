@@ -1,34 +1,36 @@
 package com.leelo.controller;
 
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
+import com.leelo.model.Texts;
 import com.leelo.model.Word;
-import com.leelo.service.WordService;
 import com.leelo.service.TextService;
-import javafx.scene.input.MouseButton;
-import javafx.scene.paint.Color;
-import java.util.HashMap;
-import java.util.Map;
-import javafx.stage.Modality;
-import javafx.stage.Popup;
-import javafx.stage.Stage;
+import com.leelo.service.WordService;
+import javafx.animation.PauseTransition;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import java.util.ArrayList;
-import java.util.List;
-import java.lang.StringBuilder;
-import java.text.Normalizer;
-import javafx.animation.PauseTransition;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
+import javafx.stage.Modality;
+import javafx.stage.Popup;
+import javafx.stage.Stage;
 import javafx.util.Duration;
-import com.leelo.model.Texts;
+
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ReadingController {
     @FXML
@@ -52,25 +54,22 @@ public class ReadingController {
     private int totalPages = 1;
     private double fontSize = 25.0;
     private Texts currentText;
-    private WordService WordService = new WordService();
-    private TextService textService = new TextService();
-    private Map<String, Word> savedWords = new HashMap<>();
-    private List<String> pages = new ArrayList<>();
+    private final WordService WordService = new WordService();
+    private final TextService textService = new TextService();
+    private final Map<String, Word> savedWords = new HashMap<>();
+    private final List<String> pages = new ArrayList<>();
     private static final int WORDS_PER_PAGE = 200;
 
     @FXML
     public void initialize() {
-        // Example logic: show test text
         showPage();
         prevPageButton.setOnAction(e -> previousPage());
         nextPageButton.setOnAction(e -> nextPage());
         decreaseFontButton.setOnAction(e -> adjustFont(-2));
         increaseFontButton.setOnAction(e -> adjustFont(2));
-
     }
 
     private void showPage() {
-
         textVBox.getChildren().clear();
         String content;
         if (pages.isEmpty()) {
@@ -85,56 +84,60 @@ public class ReadingController {
         } else {
             content = pages.get(currentPage - 1);
         }
+
         TextFlow flow = new TextFlow();
         loadSavedWords();
+
         for (String word : content.split("\\s+")) {
             String wordNorm = normalizeWord(word);
+            Word info = savedWords.get(wordNorm);
+
             Text t = new Text(word + " ");
             t.setStyle("-fx-font-size: " + fontSize + "px;");
-            Word info = savedWords.get(wordNorm);
-            if (info == null) {
-                t.setFill(Color.rgb(0, 60, 255));
-            } else {
-                switch (info.getState()) {
-                    case 1:
-                        t.setFill(Color.rgb(0, 60, 255));
-                        break;
-                    case 2:
-                        t.setFill(Color.rgb(240, 161, 13));
-                        break;
-                    case 3:
-                        t.setFill(Color.rgb(82, 194, 8));
-                        break;
-                    case 4:
-                        t.setFill(Color.rgb(2, 46, 9));
-                        break;
-                    default:
-                        t.setFill(Color.BLACK);
-                        break;
-                }
-            }
+            applyWordColor(t, info);
+
             String cleanSelectedWord = cleanWordForSelection(word);
             t.setOnMouseClicked(e -> {
+                Word currentInfo = savedWords.get(wordNorm);
                 if (e.getButton() == MouseButton.PRIMARY) {
-                    if (info == null) {
-                        // Save automatically as Learning
-                        saveWordAsLearning(wordNorm, cleanSelectedWord);
-                    } else {
-                        openWordPopup(cleanSelectedWord);
-                    }
-                } else if (e.getButton() == MouseButton.SECONDARY && info != null) {
-                    showWordTooltip(t, info);
+                    showMeaningOptions(t, cleanSelectedWord, currentInfo);
+                } else if (e.getButton() == MouseButton.SECONDARY) {
+                    openWordPopup(cleanSelectedWord);
                 }
             });
+
             flow.getChildren().add(t);
         }
+
         textVBox.getChildren().add(flow);
         pageLabel.setText("Page " + currentPage + "/" + totalPages);
     }
 
+    private void applyWordColor(Text t, Word info) {
+        if (info == null) {
+            t.setFill(Color.rgb(0, 60, 255));
+            return;
+        }
+        switch (info.getState()) {
+            case 1:
+                t.setFill(Color.rgb(0, 60, 255));
+                break;
+            case 2:
+                t.setFill(Color.rgb(240, 161, 13));
+                break;
+            case 3:
+                t.setFill(Color.rgb(82, 194, 8));
+                break;
+            case 4:
+                t.setFill(Color.rgb(2, 46, 9));
+                break;
+            default:
+                t.setFill(Color.BLACK);
+                break;
+        }
+    }
+
     private String cleanWordForSelection(String word) {
-        // Remove leading/trailing non-alphanumeric characters (punctuation, symbols)
-        // Keeps internal hyphens/apostrophes (e.g. "don't", "self-made")
         return word.replaceAll("^[^\\p{L}\\p{N}]+|[^\\p{L}\\p{N}]+$", "");
     }
 
@@ -152,15 +155,13 @@ public class ReadingController {
             textService.updateProgress(currentText.getIdText(), currentPage);
             showPage();
         } else {
-            // Si está en la primera página, volver al home
             try {
                 HomeController homeController = new HomeController();
                 homeController.initialize();
 
-                javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
-                javafx.fxml.FXMLLoader sideMenuLoader = new javafx.fxml.FXMLLoader(
-                        getClass().getResource("/com/leelo/side_menu.fxml"));
-                javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
+                BorderPane root = new BorderPane();
+                FXMLLoader sideMenuLoader = new FXMLLoader(getClass().getResource("/com/leelo/side_menu.fxml"));
+                VBox sideMenu = sideMenuLoader.load();
 
                 root.setLeft(sideMenu);
                 root.setCenter(homeController.getView());
@@ -179,20 +180,17 @@ public class ReadingController {
             showPage();
         } else {
             try {
-
                 HomeController homeController = new HomeController();
                 homeController.initialize();
 
                 BorderPane root = new BorderPane();
-                FXMLLoader sideMenuLoader = new FXMLLoader(
-                        getClass().getResource("/com/leelo/side_menu.fxml"));
-                javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
+                FXMLLoader sideMenuLoader = new FXMLLoader(getClass().getResource("/com/leelo/side_menu.fxml"));
+                VBox sideMenu = sideMenuLoader.load();
 
                 root.setLeft(sideMenu);
                 root.setCenter(homeController.getView());
 
                 com.leelo.App.getScene().setRoot(root);
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -208,24 +206,22 @@ public class ReadingController {
         this.currentText = selected;
         preparePages();
 
-        // get the last saved page
         int idSelectedText = selected.getIdText();
         currentPage = textService.getPage(idSelectedText);
         if (currentPage == 0) {
             currentPage = 1;
         }
 
-        // Actualizar o crear el progreso para marcar este libro como el último leído
         textService.updateProgress(currentText.getIdText(), currentPage);
-
         totalPages = pages.size();
         showPage();
     }
 
     private void preparePages() {
         pages.clear();
-        if (currentText == null)
+        if (currentText == null) {
             return;
+        }
         String[] words = currentText.getText().split("\\s+");
         StringBuilder page = new StringBuilder();
         int count = 0;
@@ -254,14 +250,15 @@ public class ReadingController {
                 controller.setWordToEdit(info);
             } else {
                 controller.setWordToEdit(null);
-                controller.termField.setText(word);
+                controller.setDefaultTerm(word);
             }
+
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setTitle("Add/Edit");
-            dialog.setScene(new Scene(root, 200, 250));
+            dialog.setTitle("Palabra");
+            dialog.setScene(new Scene(root, 420, 540));
             dialog.showAndWait();
-            // On close, refresh words and highlighting
+
             loadSavedWords();
             showPage();
         } catch (Exception ex) {
@@ -270,68 +267,111 @@ public class ReadingController {
     }
 
     private String normalizeWord(String word) {
-        // Remove punctuation, convert to lowercase and remove accents
         String withoutPunctuation = word.replaceAll("[^\\p{L}]", "").toLowerCase();
-        String normalized = Normalizer.normalize(withoutPunctuation, Normalizer.Form.NFD)
+        return Normalizer.normalize(withoutPunctuation, Normalizer.Form.NFD)
                 .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        return normalized;
     }
 
-    // Method to show the state name
-    private String stateToString(int state) {
-        switch (state) {
-            case 1:
-                return "New";
-            case 2:
-                return "Learning";
-            case 3:
-                return "Learned";
-            case 4:
-                return "Mastered";
-            default:
-                return "Unknown";
+    private List<String> parseMeanings(String rawTranslation) {
+        List<String> meanings = new ArrayList<>();
+        if (rawTranslation == null || rawTranslation.trim().isEmpty()) {
+            return meanings;
         }
+
+        String[] parts = rawTranslation.split("\\r?\\n|\\||;|,|/");
+        Set<String> unique = new LinkedHashSet<>();
+        for (String part : parts) {
+            String cleaned = part.trim();
+            if (!cleaned.isEmpty()) {
+                unique.add(cleaned);
+            }
+        }
+
+        meanings.addAll(unique);
+        if (meanings.isEmpty() && !rawTranslation.trim().isEmpty()) {
+            meanings.add(rawTranslation.trim());
+        }
+        return meanings;
     }
 
-    // Method to show a small tooltip below the word - Right click
-    private void showWordTooltip(Text t, Word info) {
-
+    private void showMeaningOptions(Text textNode, String selectedWord, Word info) {
         Popup popup = new Popup();
         popup.setAutoHide(true);
 
-        VBox box = new VBox(4);
+        VBox box = new VBox(6);
         box.setStyle(
                 "-fx-background-color: white;" +
-                        "-fx-padding: 10;" +
-                        "-fx-border-radius: 8;" +
-                        "-fx-background-radius: 8;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 8, 0, 0, 3);" +
-                        "-fx-font-size: 20px;");
+                "-fx-padding: 12;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-border-color: #d8e0ef;" +
+                "-fx-border-width: 1;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 12, 0, 0, 3);" +
+                "-fx-max-width: 260;");
 
-        Label trans = new Label(info.getTranslation() != null ? info.getTranslation() : "-");
+        Label title = new Label(selectedWord);
+        title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1f2a44;");
+        box.getChildren().add(title);
 
-        box.getChildren().addAll(trans);
+        List<String> meanings = info != null ? parseMeanings(info.getTranslation()) : new ArrayList<>();
+
+        if (meanings.isEmpty()) {
+            Label empty = new Label("No hay significados guardados.");
+            empty.setStyle("-fx-font-size: 12px; -fx-text-fill: #5d6a85;");
+            box.getChildren().add(empty);
+        } else {
+            int maxVisible = 3;
+            int total = meanings.size();
+            int visible = Math.min(maxVisible, total);
+
+            for (int i = 0; i < visible; i++) {
+                String meaning = meanings.get(i);
+                Label option = new Label(meaning);
+                option.setWrapText(true);
+                option.setMaxWidth(236);
+                option.setStyle(
+                        "-fx-font-size: 13px;" +
+                        "-fx-text-fill: #2a3550;" +
+                        "-fx-padding: 7 10;" +
+                        "-fx-background-color: #f5f8ff;" +
+                        "-fx-border-color: #d9e4ff;" +
+                        "-fx-border-radius: 10;" +
+                        "-fx-background-radius: 10;");
+                box.getChildren().add(option);
+            }
+
+            if (total > maxVisible) {
+                Label more = new Label("+" + (total - maxVisible) + " mas");
+                more.setStyle("-fx-font-size: 11px; -fx-text-fill: #5d6a85;");
+                box.getChildren().add(more);
+            }
+
+        }
+
+        Button editButton = new Button(meanings.isEmpty() ? "Agregar significados" : "Editar significados");
+        editButton.setStyle(
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: 600;" +
+                "-fx-text-fill: #ffffff;" +
+                "-fx-padding: 7 10;" +
+                "-fx-background-color: #2563eb;" +
+                "-fx-border-color: #2563eb;" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;");
+        editButton.setOnAction(e -> {
+            popup.hide();
+            openWordPopup(selectedWord);
+        });
+        box.getChildren().add(editButton);
+
         popup.getContent().add(box);
 
-        Point2D p = t.localToScreen(0, t.getBoundsInLocal().getHeight() + 5);
-        popup.show(t, p.getX(), p.getY());
+        Point2D p = textNode.localToScreen(0, textNode.getBoundsInLocal().getHeight() + 8);
+        popup.show(textNode, p.getX(), p.getY());
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(2));
+        PauseTransition delay = new PauseTransition(Duration.seconds(5));
         delay.setOnFinished(e -> popup.hide());
         delay.play();
-    }
-
-    // Method to automatically save a new word as Learning
-    private void saveWordAsLearning(String wordNorm, String wordOriginal) {
-        Word newWord = new Word();
-        newWord.setTerm(wordOriginal);
-        newWord.setTranslation("");
-        newWord.setPronunciation("");
-        newWord.setState(4);
-        newWord.setUrlImg("");
-        new com.leelo.service.WordService().addWord(newWord);
-        loadSavedWords();
-        openWordPopup(wordOriginal);
-        showPage();
     }
 }
