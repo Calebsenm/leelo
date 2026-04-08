@@ -2,9 +2,11 @@ package com.leelo.controller;
 
 import com.leelo.model.Texts;
 import com.leelo.model.Word;
+import com.leelo.service.ImageSearchService;
 import com.leelo.service.TextService;
 import com.leelo.service.WordService;
 import javafx.animation.PauseTransition;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Point2D;
@@ -13,8 +15,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -55,6 +61,7 @@ public class ReadingController {
     private double fontSize = 25.0;
     private Texts currentText;
     private final WordService WordService = new WordService();
+    private final ImageSearchService imageSearchService = new ImageSearchService();
     private final TextService textService = new TextService();
     private final Map<String, Word> savedWords = new HashMap<>();
     private final List<String> pages = new ArrayList<>();
@@ -298,7 +305,7 @@ public class ReadingController {
         Popup popup = new Popup();
         popup.setAutoHide(true);
 
-        VBox box = new VBox(6);
+        HBox box = new HBox(12);
         box.setStyle(
                 "-fx-background-color: white;" +
                 "-fx-padding: 12;" +
@@ -307,18 +314,21 @@ public class ReadingController {
                 "-fx-border-color: #d8e0ef;" +
                 "-fx-border-width: 1;" +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 12, 0, 0, 3);" +
-                "-fx-max-width: 260;");
+                "-fx-max-width: 460;");
+
+        VBox detailsBox = new VBox(6);
+        detailsBox.setStyle("-fx-max-width: 260;");
 
         Label title = new Label(selectedWord);
         title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1f2a44;");
-        box.getChildren().add(title);
+        detailsBox.getChildren().add(title);
 
         List<String> meanings = info != null ? parseMeanings(info.getTranslation()) : new ArrayList<>();
 
         if (meanings.isEmpty()) {
             Label empty = new Label("No hay significados guardados.");
             empty.setStyle("-fx-font-size: 12px; -fx-text-fill: #5d6a85;");
-            box.getChildren().add(empty);
+            detailsBox.getChildren().add(empty);
         } else {
             int maxVisible = 3;
             int total = meanings.size();
@@ -337,13 +347,13 @@ public class ReadingController {
                         "-fx-border-color: #d9e4ff;" +
                         "-fx-border-radius: 10;" +
                         "-fx-background-radius: 10;");
-                box.getChildren().add(option);
+                detailsBox.getChildren().add(option);
             }
 
             if (total > maxVisible) {
                 Label more = new Label("+" + (total - maxVisible) + " mas");
                 more.setStyle("-fx-font-size: 11px; -fx-text-fill: #5d6a85;");
-                box.getChildren().add(more);
+                detailsBox.getChildren().add(more);
             }
 
         }
@@ -363,15 +373,60 @@ public class ReadingController {
             popup.hide();
             openWordPopup(selectedWord);
         });
-        box.getChildren().add(editButton);
+        detailsBox.getChildren().add(editButton);
+
+        box.getChildren().add(detailsBox);
+
+        String imageUrl = info != null ? info.getUrlImg() : null;
+        if (imageUrl != null && !imageUrl.trim().isEmpty()) {
+            box.getChildren().add(createImagePanel(imageUrl.trim()));
+        }
 
         popup.getContent().add(box);
 
         Point2D p = textNode.localToScreen(0, textNode.getBoundsInLocal().getHeight() + 8);
         popup.show(textNode, p.getX(), p.getY());
 
-        PauseTransition delay = new PauseTransition(Duration.seconds(5));
+        PauseTransition delay = new PauseTransition(Duration.seconds(8));
         delay.setOnFinished(e -> popup.hide());
         delay.play();
+    }
+
+    private StackPane createImagePanel(String imageUrl) {
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(160);
+        imageView.setFitHeight(140);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+
+        Label loadingLabel = new Label("Cargando imagen...");
+        loadingLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+
+        StackPane imagePane = new StackPane(imageView, loadingLabel);
+        imagePane.setPrefSize(170, 150);
+        imagePane.setStyle(
+                "-fx-background-color: #f8fafc;" +
+                "-fx-border-color: #d8e0ef;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-padding: 8;");
+
+        Task<Image> imageTask = new Task<>() {
+            @Override
+            protected Image call() throws Exception {
+                return imageSearchService.downloadImage(imageUrl);
+            }
+        };
+        imageTask.setOnSucceeded(e -> {
+            imageView.setImage(imageTask.getValue());
+            loadingLabel.setVisible(false);
+        });
+        imageTask.setOnFailed(e -> loadingLabel.setText("No se pudo cargar."));
+
+        Thread worker = new Thread(imageTask, "reading-image-download-task");
+        worker.setDaemon(true);
+        worker.start();
+
+        return imagePane;
     }
 }
