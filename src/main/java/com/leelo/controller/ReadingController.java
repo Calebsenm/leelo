@@ -23,6 +23,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
@@ -321,7 +322,35 @@ public class ReadingController {
 
         Label title = new Label(selectedWord);
         title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1f2a44;");
-        detailsBox.getChildren().add(title);
+
+        HBox titleRow = new HBox(8);
+        titleRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        titleRow.getChildren().add(title);
+
+        Button speakButton = new Button();
+        speakButton.setGraphic(createSpeakerIcon());
+        speakButton.setStyle(
+                "-fx-background-color: #eff6ff;" +
+                "-fx-border-color: #bfdbfe;" +
+                "-fx-border-radius: 999;" +
+                "-fx-background-radius: 999;" +
+                "-fx-padding: 5 7;" +
+                "-fx-cursor: hand;");
+        speakButton.setOnAction(e -> speakText(selectedWord));
+        titleRow.getChildren().add(speakButton);
+
+        detailsBox.getChildren().add(titleRow);
+
+        String pronunciation = info != null ? info.getPronunciation() : null;
+        if (pronunciation != null && !pronunciation.trim().isEmpty()) {
+            Label pronunciationLabel = new Label(pronunciation.trim());
+            pronunciationLabel.setWrapText(true);
+            pronunciationLabel.setStyle(
+                    "-fx-font-size: 12px;" +
+                    "-fx-font-style: italic;" +
+                    "-fx-text-fill: #475569;");
+            detailsBox.getChildren().add(pronunciationLabel);
+        }
 
         List<String> meanings = info != null ? parseMeanings(info.getTranslation()) : new ArrayList<>();
 
@@ -428,5 +457,39 @@ public class ReadingController {
         worker.start();
 
         return imagePane;
+    }
+
+    private SVGPath createSpeakerIcon() {
+        SVGPath icon = new SVGPath();
+        icon.setContent("M3 10v4h3l4 3V7L6 10H3zm10.5 2a3.5 3.5 0 0 0-2-3.15v6.29A3.5 3.5 0 0 0 13.5 12zm0-7a.75.75 0 0 0-.38 1.4A6.98 6.98 0 0 1 17 12a6.98 6.98 0 0 1-3.88 6.6.75.75 0 1 0 .76 1.3A8.48 8.48 0 0 0 18.5 12 8.48 8.48 0 0 0 13.88 4.1.75.75 0 0 0 13.5 4z");
+        icon.setScaleX(0.8);
+        icon.setScaleY(0.8);
+        icon.setStyle("-fx-fill: #1d4ed8;");
+        return icon;
+    }
+
+    private void speakText(String text) {
+        if (text == null || text.isBlank()) {
+            return;
+        }
+
+        Thread worker = new Thread(() -> {
+            try {
+                String safeText = text.replace("'", "''");
+                String command =
+                        "$speaker = New-Object -ComObject SAPI.SpVoice; " +
+                        "$englishVoice = $speaker.GetVoices() | Where-Object { " +
+                        "$desc = $_.GetDescription(); " +
+                        "$desc -match 'English|US|UK|en-' " +
+                        "} | Select-Object -First 1; " +
+                        "if ($englishVoice) { $speaker.Voice = $englishVoice; } " +
+                        "$speaker.Speak('" + safeText + "') | Out-Null";
+                ProcessBuilder builder = new ProcessBuilder("powershell", "-NoProfile", "-Command", command);
+                builder.start().waitFor();
+            } catch (Exception ignored) {
+            }
+        }, "leelo-pronunciation-speaker");
+        worker.setDaemon(true);
+        worker.start();
     }
 }

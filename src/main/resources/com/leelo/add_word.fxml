@@ -23,7 +23,12 @@
 
                 <Label text="Significados" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
                 <VBox fx:id="meaningsContainer" spacing="8" maxWidth="340.0" prefWidth="340.0" />
-                <Button fx:id="addMeaningButton" styleClass="btn" maxWidth="340.0" text="+ Agregar significado" />
+                <HBox spacing="8" maxWidth="340.0" prefWidth="340.0">
+                    <children>
+                        <Button fx:id="addMeaningButton" styleClass="btn" HBox.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" text="+ Agregar significado" />
+                        <Button fx:id="dictionaryButton" minWidth="36.0" prefWidth="36.0" text="" />
+                    </children>
+                </HBox>
 
                 <Label text="Pronunciacion (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
                 <TextField fx:id="pronunciationField" maxWidth="340.0" promptText="Pronunciacion" />

@@ -1,9 +1,9 @@
 package com.leelo.controller;
 
 import com.leelo.model.Word;
+import com.leelo.service.DictionaryService;
 import com.leelo.service.ImageSearchService;
 import com.leelo.service.WordService;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -41,9 +41,11 @@ public class addWordController {
     @FXML private Label messageLabel;
     @FXML private VBox meaningsContainer;
     @FXML private Button addMeaningButton;
+    @FXML private Button dictionaryButton;
     @FXML private ImageView imagePreview;
 
     private final WordService WordService = new WordService();
+    private final DictionaryService dictionaryService = new DictionaryService();
     private final ImageSearchService imageSearchService = new ImageSearchService();
     private Word wordToEdit = null;
 
@@ -52,6 +54,14 @@ public class addWordController {
         stateCombo.setItems(FXCollections.observableArrayList("New", "Learning", "Learned", "Mastered"));
         stateCombo.setValue("Learning");
         addMeaningButton.setOnAction(e -> addMeaningField(""));
+        dictionaryButton.setGraphic(createDictionaryIcon());
+        dictionaryButton.setOnAction(e -> openDictionaryDialog());
+        dictionaryButton.setStyle(
+                "-fx-background-color: #f8fafc;" +
+                "-fx-border-color: #cbd5e1;" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;");
         saveButton.setOnAction(e -> saveOrUpdateWord());
         searchImageButton.setGraphic(createSearchIcon());
         searchImageButton.setOnAction(e -> openImageSearchDialog());
@@ -228,12 +238,159 @@ public class addWordController {
         messageLabel.setStyle(isError ? "-fx-text-fill: red;" : "-fx-text-fill: green;");
     }
 
+    private void openDictionaryDialog() {
+        String term = termField.getText() != null ? termField.getText().trim() : "";
+        if (term.isEmpty()) {
+            showMessage("Escribe la palabra antes de consultar el diccionario.", true);
+            return;
+        }
+
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.initOwner(saveButton.getScene().getWindow());
+        dialog.setTitle("Diccionario");
+
+        Label title = new Label("Diccionario para: " + term);
+        title.setStyle("-fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: #1f2937;");
+
+        Label statusLabel = new Label("Buscando definiciones...");
+        statusLabel.setWrapText(true);
+        statusLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+
+        VBox resultsBox = new VBox(10);
+        resultsBox.setPadding(new Insets(4));
+
+        ScrollPane scrollPane = new ScrollPane(resultsBox);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        ProgressIndicator progressIndicator = new ProgressIndicator();
+        progressIndicator.setMaxSize(40, 40);
+
+        StackPane centerPane = new StackPane(scrollPane, progressIndicator);
+        centerPane.setPrefSize(620, 420);
+
+        Button closeButton = new Button("Cerrar");
+        closeButton.setOnAction(e -> dialog.close());
+
+        VBox root = new VBox(12, title, statusLabel, centerPane, closeButton);
+        root.setPadding(new Insets(16));
+        root.setStyle("-fx-background-color: white;");
+
+        dialog.setScene(new Scene(root, 640, 520));
+
+        Task<DictionaryService.DictionaryLookupResult> task = new Task<>() {
+            @Override
+            protected DictionaryService.DictionaryLookupResult call() throws Exception {
+                return dictionaryService.lookup(term);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            progressIndicator.setVisible(false);
+            DictionaryService.DictionaryLookupResult result = task.getValue();
+            if (result == null || result.meanings().isEmpty()) {
+                statusLabel.setText("No encontre definiciones para esta palabra.");
+                return;
+            }
+
+            if ((pronunciationField.getText() == null || pronunciationField.getText().trim().isEmpty())
+                    && result.phonetic() != null && !result.phonetic().isBlank()) {
+                pronunciationField.setText(result.phonetic());
+            }
+
+            String phoneticText = result.phonetic() == null || result.phonetic().isBlank()
+                    ? ""
+                    : "  " + result.phonetic();
+            statusLabel.setText("Selecciona un significado para agregar." + phoneticText);
+
+            for (DictionaryService.DictionaryMeaning meaning : result.meanings()) {
+                resultsBox.getChildren().add(createDictionaryCard(meaning, dialog));
+            }
+        });
+
+        task.setOnFailed(e -> {
+            progressIndicator.setVisible(false);
+            Throwable error = task.getException();
+            statusLabel.setText(error != null && error.getMessage() != null
+                    ? error.getMessage()
+                    : "Ocurrio un error al consultar el diccionario.");
+        });
+
+        Thread worker = new Thread(task, "dictionary-lookup-task");
+        worker.setDaemon(true);
+        worker.start();
+
+        dialog.showAndWait();
+    }
+
+    private VBox createDictionaryCard(DictionaryService.DictionaryMeaning meaning, Stage dialog) {
+        Label sourceLabel = new Label(meaning.source());
+        sourceLabel.setStyle(
+                "-fx-font-size: 10px;" +
+                "-fx-font-weight: 700;" +
+                "-fx-text-fill: #475569;" +
+                "-fx-background-color: #e2e8f0;" +
+                "-fx-padding: 4 8;" +
+                "-fx-background-radius: 999;");
+
+        Label typeLabel = new Label(meaning.partOfSpeech().isBlank() ? "Definicion" : meaning.partOfSpeech());
+        typeLabel.setStyle(
+                "-fx-font-size: 11px;" +
+                "-fx-font-weight: 700;" +
+                "-fx-text-fill: #1d4ed8;" +
+                "-fx-background-color: #dbeafe;" +
+                "-fx-padding: 4 8;" +
+                "-fx-background-radius: 999;");
+
+        HBox badges = new HBox(6, sourceLabel, typeLabel);
+
+        Label definitionLabel = new Label(meaning.definition());
+        definitionLabel.setWrapText(true);
+        definitionLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #1e293b;");
+
+        VBox content = new VBox(8, badges, definitionLabel);
+
+        if (meaning.example() != null && !meaning.example().isBlank()) {
+            Label exampleLabel = new Label("Ejemplo: " + meaning.example());
+            exampleLabel.setWrapText(true);
+            exampleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+            content.getChildren().add(exampleLabel);
+        }
+
+        Button addButton = new Button("Usar significado");
+        addButton.setOnAction(e -> {
+            insertMeaningValue(meaning.suggestedMeaning());
+            dialog.close();
+        });
+
+        VBox card = new VBox(10, content, addButton);
+        card.setPadding(new Insets(12));
+        card.setStyle(
+                "-fx-background-color: #f8fafc;" +
+                "-fx-border-color: #dbeafe;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;");
+        return card;
+    }
+
     private SVGPath createSearchIcon() {
         SVGPath icon = new SVGPath();
         icon.setContent("M15.5 14h-.79l-.28-.27a6 6 0 1 0-1.06 1.06l.27.28v.79L20 21.49 21.49 20zM10 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8z");
         icon.setScaleX(0.8);
         icon.setScaleY(0.8);
         icon.setStyle("-fx-fill: #1d4ed8;");
+        return icon;
+    }
+
+    private SVGPath createDictionaryIcon() {
+        SVGPath icon = new SVGPath();
+        icon.setContent("M4 5h16v2H4zm0 5h16v2H4zm0 5h10v2H4z");
+        icon.setScaleX(0.9);
+        icon.setScaleY(0.9);
+        icon.setStyle("-fx-fill: #0f172a;");
         return icon;
     }
 
@@ -334,12 +491,21 @@ public class addWordController {
         imagePane.setStyle("-fx-background-color: #e2e8f0; -fx-background-radius: 8;");
         loadImageIntoView(result.thumbnailUrl(), thumbnail, loadingLabel);
 
+        Label sourceLabel = new Label(result.source());
+        sourceLabel.setStyle(
+                "-fx-font-size: 10px;" +
+                "-fx-font-weight: 700;" +
+                "-fx-text-fill: #475569;" +
+                "-fx-background-color: #e2e8f0;" +
+                "-fx-padding: 3 7;" +
+                "-fx-background-radius: 999;");
+
         Label caption = new Label(cleanImageTitle(result.title()));
         caption.setWrapText(true);
         caption.setMaxWidth(190);
         caption.setStyle("-fx-font-size: 11px; -fx-text-fill: #334155;");
 
-        VBox card = new VBox(6, imagePane, caption);
+        VBox card = new VBox(6, imagePane, sourceLabel, caption);
         card.setPadding(new Insets(8));
         card.setPrefWidth(206);
         card.setMaxWidth(206);
@@ -362,6 +528,30 @@ public class addWordController {
             return "Imagen";
         }
         return title.replace("File:", "").replace('_', ' ');
+    }
+
+    private void insertMeaningValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return;
+        }
+
+        for (javafx.scene.Node node : meaningsContainer.getChildren()) {
+            if (!(node instanceof HBox)) {
+                continue;
+            }
+            HBox row = (HBox) node;
+            for (javafx.scene.Node child : row.getChildren()) {
+                if (child instanceof TextField) {
+                    TextField field = (TextField) child;
+                    if (field.getText() == null || field.getText().trim().isEmpty()) {
+                        field.setText(value.trim());
+                        return;
+                    }
+                }
+            }
+        }
+
+        addMeaningField(value.trim());
     }
 
     private void refreshPreview(String imageUrl) {
