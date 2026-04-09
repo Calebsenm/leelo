@@ -7,7 +7,6 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" stylesheets="@css/main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.addWordController">
@@ -23,23 +22,13 @@
 
                 <Label text="Significados" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
                 <VBox fx:id="meaningsContainer" spacing="8" maxWidth="340.0" prefWidth="340.0" />
-                <HBox spacing="8" maxWidth="340.0" prefWidth="340.0">
-                    <children>
-                        <Button fx:id="addMeaningButton" styleClass="btn" HBox.hgrow="ALWAYS" maxWidth="1.7976931348623157E308" text="+ Agregar significado" />
-                        <Button fx:id="dictionaryButton" minWidth="36.0" prefWidth="36.0" text="" />
-                    </children>
-                </HBox>
+                <Button fx:id="addMeaningButton" styleClass="btn" maxWidth="340.0" text="+ Agregar significado" />
 
                 <Label text="Pronunciacion (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
                 <TextField fx:id="pronunciationField" maxWidth="340.0" promptText="Pronunciacion" />
 
                 <Label text="URL imagen (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
-                <HBox alignment="CENTER" spacing="8" maxWidth="340.0" prefWidth="340.0">
-                    <children>
-                        <TextField fx:id="urlImgField" promptText="https://..." HBox.hgrow="ALWAYS" />
-                        <Button fx:id="searchImageButton" minWidth="36.0" prefWidth="36.0" text="" />
-                    </children>
-                </HBox>
+                <TextField fx:id="urlImgField" maxWidth="340.0" promptText="https://..." />
                 <ImageView fx:id="imagePreview" fitHeight="110.0" fitWidth="160.0" pickOnBounds="true" preserveRatio="true" visible="false" managed="false" />
 
                 <Label text="Estado" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
