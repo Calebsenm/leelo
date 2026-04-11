@@ -4,9 +4,10 @@ A desktop application to improve reading skills and language learning.
 
 ![Read](img/home.png )
 ![Read](img/read.png)
+![Read](img/add_meaning.png )
 ![Read](img/texts.png )
 ![Read](img/add_text.png )
-![Read](img/add_meaning.png )
+
 
 ## For Developers
 
