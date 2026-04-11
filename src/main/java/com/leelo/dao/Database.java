@@ -4,14 +4,43 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Database {
-    private static final String DB_URL = "jdbc:sqlite:leelo.db";
-
+    //private static final String DB_URL = "jdbc:sqlite:leelo.db";
+    private static String DB_URL;
+    
+    //Create a Database in AppData\Local\Leelo
+    static {
+        try {
+            String appData = System.getenv("LOCALAPPDATA");
+            if (appData == null || appData.isEmpty()) {
+                appData = System.getProperty("user.home") + "\\AppData\\Local";
+            }
+    
+            Path appFolder = Paths.get(appData, "Leelo");
+            if (!Files.exists(appFolder)) {
+                Files.createDirectories(appFolder);
+            }
+    
+            Path dbPath = appFolder.resolve("leelo.db");
+            DB_URL = "jdbc:sqlite:" + dbPath.toAbsolutePath().toString();
+    
+            System.out.println("Base de datos en: " + dbPath);
+    
+        } catch (Exception e) {
+            e.printStackTrace();
+            DB_URL = "jdbc:sqlite:leelo.db";
+        }
+    }
+    
+    
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL);
     }
-
+    
     public static void initialize() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
             //Create table text 
