@@ -60,7 +60,7 @@
       <plugin>
         <groupId>org.panteleyev</groupId>
         <artifactId>jpackage-maven-plugin</artifactId>
-        <version>1.7.1</version>
+        <version>1.7.4</version>
         <executions>
           <execution>
             <id>jpackage</id>
@@ -71,18 +71,22 @@
             <configuration>
               <name>Leelo</name>
               <appVersion>${project.version}</appVersion>
-              <type>APP_IMAGE</type>
+              <type>EXE</type>
               <destination>${project.build.directory}/dist</destination>
               <mainClass>${main.class.launcher}</mainClass>
               <input>${project.build.directory}</input>
               <mainJar>leelo-${project.version}-shaded.jar</mainJar>
+              <winShortcut>true</winShortcut>
+              <winMenu>true</winMenu>
+              <vendor>Leelo</vendor>
+              <description>Leelo - Aplication for reading texts in a foreign languaje</description>
+              <icon>src/main/resources/leelo.ico</icon>
               <jlinkOptions>
                 <option>--strip-debug</option>
                 <option>--compress=2</option>
                 <option>--no-header-files</option>
                 <option>--no-man-pages</option>
               </jlinkOptions>
-              <icon>src/main/resources/leelo.ico</icon>
             </configuration>
           </execution>
         </executions>
