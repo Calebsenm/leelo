@@ -31,12 +31,10 @@ public class wordsController {
     @FXML private Button addButton;
     @FXML private Button editButton;
     @FXML private Button deleteButton;
-    @FXML private Button practiceButton;
     @FXML private Button backButton;
     @FXML private Button homeButton;
     @FXML private Button textButton;
     @FXML private Button wordsButton;
-    @FXML private Button practiceButton2;
     @FXML private Button logoutButton;
 
     private WordService WordService = new WordService();
@@ -59,7 +57,6 @@ public class wordsController {
         addButton.setOnAction(e -> goToAddWord());
         editButton.setOnAction(e -> editSelectedWord());
         deleteButton.setOnAction(e -> deleteSelectedWord());
-        practiceButton.setOnAction(e -> startPractice());
         backButton.setOnAction(e -> goToHome());
     }
 
@@ -99,14 +96,6 @@ public class wordsController {
         });
     }
     
-    private void startPractice() {
-        try {
-            App.setRoot("practice");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private void goToAddWord() {
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("add_word.fxml"));

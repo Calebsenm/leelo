@@ -191,8 +191,7 @@ public class HomeView extends VBox {
         
         String[] featureTexts = {
             "• Gestionar Textos — Organiza tu biblioteca de textos de lectura",
-            "• Aprender Palabras — Construye tu vocabulario con nuevas palabras",
-            "• Practicar — Refuerza tu aprendizaje con ejercicios"
+            "• Aprender Palabras — Construye tu vocabulario con nuevas palabras"
         };
         
         for (String text : featureTexts) {

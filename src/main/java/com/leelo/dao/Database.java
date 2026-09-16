@@ -56,17 +56,7 @@ public class Database {
                     "translation TEXT," +
                     "pronunciation TEXT," +
                     "state INTEGER NOT NULL," +
-                    "url_img TEXT," +
-                    "last_review TEXT," +
-                    "review_count INTEGER DEFAULT 0," +
-                    "success_count INTEGER DEFAULT 0)");
-            //Create table study_sessions for tracking study sessions
-            stmt.executeUpdate("CREATE TABLE IF NOT EXISTS study_sessions (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    "session_date TEXT NOT NULL," +
-                    "words_reviewed INTEGER NOT NULL," +
-                    "correct_answers INTEGER NOT NULL," +
-                    "session_duration INTEGER NOT NULL)");
+                    "url_img TEXT)");
             // Create table for save the page of a text 
             stmt.executeUpdate( "CREATE TABLE IF NOT EXISTS progress (" +
                 "id_progress INTEGER PRIMARY KEY AUTOINCREMENT," +

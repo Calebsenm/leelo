@@ -13,8 +13,6 @@ public class SideMenuController {
     private Button textButton;
     @FXML
     private Button wordsButton;
-    @FXML
-    private Button practiceButton;
     
     private Button activeButton;
     private static final double ICON_SIZE = 20.0;
@@ -31,7 +29,6 @@ public class SideMenuController {
         setupButton(homeButton, "/com/leelo/icons/home.png", "home");
         setupButton(textButton, "/com/leelo/icons/notes.png", "texts");
         setupButton(wordsButton, "/com/leelo/icons/word.png", "words");
-        setupButton(practiceButton, "/com/leelo/icons/brain.png", "practice");
     }
     
     private void setupButton(Button button, String iconPath, String destination) {
@@ -92,9 +89,6 @@ public class SideMenuController {
                 break;
             case "words":
                 buttonToActivate = wordsButton;
-                break;
-            case "practice":
-                buttonToActivate = practiceButton;
                 break;
         }
         

@@ -46,18 +46,5 @@
                 <Tooltip text="Palabras" />
             </tooltip>
         </Button>
-        
-        <Button fx:id="practiceButton" styleClass="nav-btn">
-            <graphic>
-                <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true">
-                    <image>
-                        <Image url="@icons/brain.png" />
-                    </image>
-                </ImageView>
-            </graphic>
-            <tooltip>
-                <Tooltip text="Práctica" />
-            </tooltip>
-        </Button>
     </children>
 </VBox>

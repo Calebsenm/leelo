@@ -50,7 +50,6 @@
         <Button fx:id="addButton" styleClass="btn" text="Agregar" />
         <Button fx:id="editButton" styleClass="btn" text="Editar" />
         <Button fx:id="deleteButton" styleClass="btn" text="Eliminar" />
-        <Button fx:id="practiceButton" styleClass="btn" text="Practicar" />
       </HBox>
     </VBox>
   </center>
