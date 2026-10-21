@@ -1,40 +1,55 @@
 package com.leelo.controller;
 
 import com.leelo.App;
-import com.leelo.model.Texts;
-import com.leelo.service.TextService;
+import com.leelo.model.Book;
+import com.leelo.model.Language;
+import com.leelo.service.BookService;
+import com.leelo.service.LanguageService;
+import com.leelo.service.PageSplitter;
+import com.leelo.service.SettingService;
+import com.leelo.service.TextImportService;
 import com.leelo.util.TextCleaner;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.File;
-import org.apache.pdfbox.Loader;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.text.PDFTextStripper;
-import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * The screen used to add a book or to change its metadata.
+ */
 public class addTextController {
 
-    // Form fields
     @FXML
     private TextField titleField;
     @FXML
+    private TextField tagsField;
+    @FXML
+    private TextField sourceUriField;
+    @FXML
     private TextArea areaContent;
+    @FXML
+    private ComboBox<Language> languageCombo;
+    @FXML
+    private ComboBox<PageSplitter.SplitBy> splitByCombo;
+    @FXML
+    private Spinner<Integer> thresholdSpinner;
     @FXML
     private Button saveButton;
     @FXML
@@ -45,8 +60,6 @@ public class addTextController {
     private Button txtButton;
     @FXML
     private Button urlButton;
-
-    // UI elements for enhanced functionality
     @FXML
     private Label formTitleLabel;
     @FXML
@@ -56,354 +69,293 @@ public class addTextController {
     @FXML
     private Label contentValidationLabel;
     @FXML
+    private Label languageValidationLabel;
+    @FXML
     private Label characterCountLabel;
     @FXML
     private Label wordCountLabel;
     @FXML
     private VBox messageContainer;
     @FXML
-    private StackPane loadingContainer;
-    @FXML
-    private ProgressIndicator loadingIndicator;
-    @FXML
     private HBox buttonContainer;
 
-    private TextService textService = new TextService();
-    private Texts textToEdit = null;
-    private boolean isLoading = false;
+    private final BookService bookService = new BookService();
+    private final LanguageService languageService = new LanguageService();
+    private final SettingService settingService = new SettingService();
+    private final TextImportService textImportService = new TextImportService();
 
-    // Method called from text controller for edit
-    public void setTextToEdit(Texts text) {
-        this.textToEdit = text;
-        if (text != null) {
-            titleField.setText(text.getTittle());
-            areaContent.setText(text.getText());
-            formTitleLabel.setText("Edit Text");
-            saveButton.setText("Update Text");
-            updateCharacterCount();
-        }
-    }
+    private Book bookToEdit;
+    private boolean isLoading;
 
     @FXML
     public void initialize() {
-        setupEventHandlers();
-        setupValidation();
-        updateCharacterCount();
-    }
+        setupLanguages();
+        splitByCombo.getItems().setAll(PageSplitter.SplitBy.values());
+        splitByCombo.setConverter(new javafx.util.StringConverter<>() {
+            @Override
+            public String toString(PageSplitter.SplitBy value) {
+                return value == null ? "" : switch (value) {
+                    case PARAGRAPHS -> "Párrafos";
+                    case SENTENCES -> "Frases";
+                };
+            }
 
-    private void setupEventHandlers() {
-        saveButton.setOnAction(e -> saveOrUpdateText());
-        backButton.setOnAction(e -> goToTexts());
-        pdfButton.setOnAction(e -> saveFromPdf());
-        txtButton.setOnAction(e -> saveFromTxt());
-        urlButton.setOnAction(e -> saveFromUrl());
+            @Override
+            public PageSplitter.SplitBy fromString(String value) {
+                return PageSplitter.SplitBy.PARAGRAPHS;
+            }
+        });
+        splitByCombo.setValue(PageSplitter.SplitBy.PARAGRAPHS);
+        thresholdSpinner.setValueFactory(
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(10, 1500, PageSplitter.DEFAULT_THRESHOLD, 10));
 
-        // Real-time character and word counting
+        saveButton.setOnAction(event -> saveOrUpdateText());
+        backButton.setOnAction(event -> goToTexts());
+        pdfButton.setOnAction(event -> loadFromPdf());
+        txtButton.setOnAction(event -> loadFromTxt());
+        urlButton.setOnAction(event -> loadFromUrl());
+
         areaContent.textProperty().addListener((observable, oldValue, newValue) -> {
             updateCharacterCount();
             clearContentValidation();
         });
-
-        titleField.textProperty().addListener((observable, oldValue, newValue) -> {
-            clearTitleValidation();
-        });
+        titleField.textProperty().addListener((observable, oldValue, newValue) -> clearTitleValidation());
     }
 
-    private void setupValidation() {
-        // Add focus listeners for better UX
-        titleField.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue) { // Lost focus
-                validateTitle();
-            }
-        });
-
-        areaContent.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (!newValue) { // Lost focus
-                validateContent();
-            }
-        });
+    /** Fills the combo box with the available languages. */
+    private void setupLanguages() {
+        List<Language> languages = languageService.getSupported();
+        languageCombo.getItems().setAll(languages);
+        int currentLanguageId = settingService.getCurrentLanguageId();
+        languages.stream()
+                .filter(language -> language.getId() == currentLanguageId)
+                .findFirst()
+                .ifPresent(languageCombo::setValue);
+        if (languageCombo.getValue() == null && !languages.isEmpty()) {
+            languageCombo.setValue(languages.get(0));
+        }
     }
 
+    /** Fills the form with the data of a book that is being edited. */
+    public void setBookToEdit(Book book) {
+        this.bookToEdit = book;
+        if (book == null) {
+            return;
+        }
+        formTitleLabel.setText("Editar Texto");
+        saveButton.setText("Actualizar");
+        titleField.setText(book.getTitle());
+        sourceUriField.setText(book.getSourceUri());
+        tagsField.setText(book.getTagList());
+        languageCombo.setValue(languageService.getById(book.getLanguageId()));
+        areaContent.setText(bookService.getPages(book.getId()).stream()
+                .map(page -> page.getContent())
+                .reduce((a, b) -> a + "\n\n" + b)
+                .orElse(""));
+        updateCharacterCount();
+    }
+
+    /** Counts the characters and the words of the content. */
     private void updateCharacterCount() {
         String content = areaContent.getText();
-        int charCount = content.length();
         int wordCount = content.trim().isEmpty() ? 0 : content.trim().split("\\s+").length;
-
-        characterCountLabel.setText(charCount + " characters");
-        wordCountLabel.setText("• " + wordCount + " words");
+        characterCountLabel.setText(content.length() + " caracteres");
+        wordCountLabel.setText(wordCount + " palabras");
     }
 
-    private boolean validateTitle() {
-        String title = titleField.getText().trim();
-
-        if (title.isEmpty()) {
-            showTitleValidation("Title is required", true);
-            applyFieldErrorStyle(titleField);
-            return false;
-        } else if (title.length() < 3) {
-            showTitleValidation("Title must be at least 3 characters long", true);
-            applyFieldErrorStyle(titleField);
-            return false;
-        } else if (title.length() > 100) {
-            showTitleValidation("Title must be less than 100 characters", true);
-            applyFieldErrorStyle(titleField);
-            return false;
-        } else {
-            clearTitleValidation();
-            applyFieldSuccessStyle(titleField);
-            return true;
-        }
-    }
-
-    private boolean validateContent() {
-        String content = areaContent.getText().trim();
-
-        if (content.isEmpty()) {
-            showContentValidation("Content is required", true);
-            applyFieldErrorStyle(areaContent);
-            return false;
-        } else if (content.length() < 10) {
-            showContentValidation("Content must be at least 10 characters long", true);
-            applyFieldErrorStyle(areaContent);
-            return false;
-        } else {
-            clearContentValidation();
-            applyFieldSuccessStyle(areaContent);
-            return true;
-        }
-    }
-
-    private void showTitleValidation(String message, boolean isError) {
-        titleValidationLabel.setText(message);
-        titleValidationLabel.setVisible(true);
-        titleValidationLabel.getStyleClass().clear();
-        titleValidationLabel.getStyleClass().add(isError ? "validation-message-error" : "validation-message-success");
-    }
-
-    private void clearTitleValidation() {
-        titleValidationLabel.setVisible(false);
-        clearFieldStyle(titleField);
-    }
-
-    private void showContentValidation(String message, boolean isError) {
-        contentValidationLabel.setText(message);
-        contentValidationLabel.setVisible(true);
-        contentValidationLabel.getStyleClass().clear();
-        contentValidationLabel.getStyleClass().add(isError ? "validation-message-error" : "validation-message-success");
-    }
-
-    private void clearContentValidation() {
-        contentValidationLabel.setVisible(false);
-        clearFieldStyle(areaContent);
-    }
-
-    private void applyFieldErrorStyle(Control field) {
-        field.getStyleClass().removeAll("text-field-success", "text-area-success");
-        if (field instanceof TextField) {
-            field.getStyleClass().add("text-field-error");
-        } else if (field instanceof TextArea) {
-            field.getStyleClass().add("text-area-error");
-        }
-    }
-
-    private void applyFieldSuccessStyle(Control field) {
-        field.getStyleClass().removeAll("text-field-error", "text-area-error");
-        if (field instanceof TextField) {
-            field.getStyleClass().add("text-field-success");
-        } else if (field instanceof TextArea) {
-            field.getStyleClass().add("text-area-success");
-        }
-    }
-
-    private void clearFieldStyle(Control field) {
-        field.getStyleClass().removeAll("text-field-error", "text-area-error", "text-field-success",
-                "text-area-success");
-    }
-
+    /** Saves the book. */
     private void saveOrUpdateText() {
-        if (isLoading)
-            return;
-
-        // Validate all fields
-        boolean titleValid = validateTitle();
-        boolean contentValid = validateContent();
-
-        if (!titleValid || !contentValid) {
-            showMessage("Please fix the validation errors above", MessageType.ERROR);
+        if (isLoading) {
             return;
         }
-
-        // Show loading state
+        if (!validate()) {
+            showMessage("Revisa los campos marcados en rojo.", MessageType.ERROR);
+            return;
+        }
         setLoadingState(true);
 
-        // Create background task for saving
-        Task<Boolean> saveTask = new Task<Boolean>() {
+        Task<Boolean> task = new Task<>() {
             @Override
-            protected Boolean call() throws Exception {
-                // Simulate some processing time for better UX
-                Thread.sleep(500);
+            protected Boolean call() {
+                Language language = languageCombo.getValue();
+                List<String> tags = splitTags(tagsField.getText());
+                String source = sourceUriField.getText() == null ? "" : sourceUriField.getText().trim();
+                int threshold = thresholdSpinner.getValue() == null
+                        ? PageSplitter.DEFAULT_THRESHOLD : thresholdSpinner.getValue();
+                PageSplitter.SplitBy splitBy = splitByCombo.getValue() == null
+                        ? PageSplitter.SplitBy.PARAGRAPHS : splitByCombo.getValue();
 
-                String title = titleField.getText().trim();
-                String content = areaContent.getText().trim();
-
-                boolean success;
-                if (textToEdit != null) {
-                    textToEdit.setTittle(title);
-                    textToEdit.setText(content);
-                    success = textService.updateText(textToEdit);
-                } else {
-                    Texts text = new Texts();
-                    text.setTittle(title);
-                    text.setText(content);
-                    success = textService.addText(text);
+                if (bookToEdit != null) {
+                    bookToEdit.setTitle(titleField.getText().trim());
+                    bookToEdit.setSourceUri(source);
+                    bookToEdit.setLanguageId(language.getId());
+                    return bookService.update(bookToEdit, tags);
                 }
-
-                return success;
+                return bookService.create(titleField.getText().trim(), language, areaContent.getText(),
+                        source, splitBy, threshold, tags) > 0;
             }
         };
 
-        saveTask.setOnSucceeded(e -> {
-            Platform.runLater(() -> {
-                setLoadingState(false);
-                boolean success = saveTask.getValue();
+        task.setOnSucceeded(event -> Platform.runLater(() -> {
+            setLoadingState(false);
+            if (Boolean.TRUE.equals(task.getValue())) {
+                showMessage(bookToEdit != null ? "Texto actualizado." : "Texto guardado.",
+                        MessageType.SUCCESS);
+                PauseTransition delay = new PauseTransition(Duration.seconds(1));
+                delay.setOnFinished(event2 -> goToTexts());
+                delay.play();
+            } else {
+                showMessage("No se pudo guardar el texto.", MessageType.ERROR);
+            }
+        }));
+        task.setOnFailed(event -> Platform.runLater(() -> {
+            setLoadingState(false);
+            showMessage("Ocurrio un error al guardar.", MessageType.ERROR);
+        }));
 
-                if (success) {
-                    String action = textToEdit != null ? "updated" : "saved";
-                    showMessage("Text " + action + " successfully!", MessageType.SUCCESS);
-
-                    // Apply success styles to fields
-                    applyFieldSuccessStyle(titleField);
-                    applyFieldSuccessStyle(areaContent);
-
-                    // Navigate back after a short delay without blocking the UI thread
-                    PauseTransition navigationDelay = new PauseTransition(Duration.seconds(1));
-                    navigationDelay.setOnFinished(ev -> goToTexts());
-                    navigationDelay.play();
-                } else {
-                    showMessage("Could not save the text. Please try again.", MessageType.ERROR);
-                }
-            });
-        });
-
-        saveTask.setOnFailed(e -> {
-            Platform.runLater(() -> {
-                setLoadingState(false);
-                showMessage("An error occurred while saving. Please try again.", MessageType.ERROR);
-            });
-        });
-
-        // Run the task in background thread
-        Thread saveThread = new Thread(saveTask);
-        saveThread.setDaemon(true);
-        saveThread.start();
+        Thread worker = new Thread(task, "leelo-save-text");
+        worker.setDaemon(true);
+        worker.start();
     }
 
-    private void saveFromPdf() {
+    /** Validates the form. */
+    private boolean validate() {
+        boolean valid = true;
+        String title = titleField.getText() == null ? "" : titleField.getText().trim();
+        if (title.isEmpty()) {
+            showValidation(titleValidationLabel, "El titulo es obligatorio", true);
+            valid = false;
+        } else {
+            showValidation(titleValidationLabel, "", false);
+        }
+
+        String content = areaContent.getText() == null ? "" : areaContent.getText().trim();
+        if (content.isEmpty()) {
+            showValidation(contentValidationLabel, "El contenido es obligatorio", true);
+            valid = false;
+        } else {
+            showValidation(contentValidationLabel, "", false);
+        }
+
+        if (languageCombo.getValue() == null) {
+            showValidation(languageValidationLabel, "Selecciona un idioma", true);
+            valid = false;
+        } else {
+            showValidation(languageValidationLabel, "", false);
+        }
+        return valid;
+    }
+
+    /** Shows or hides a validation message. */
+    private void showValidation(Label label, String message, boolean error) {
+        label.setText(message);
+        label.setVisible(!message.isEmpty());
+        label.getStyleClass().removeAll("text-success");
+        label.getStyleClass().add(error ? "text-error" : "text-success");
+    }
+
+    private void clearTitleValidation() {
+        showValidation(titleValidationLabel, "", false);
+    }
+
+    private void clearContentValidation() {
+        showValidation(contentValidationLabel, "", false);
+    }
+
+    /** Loads the content of a PDF file. */
+    private void loadFromPdf() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecciona un archivo PDF");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos PDF", "*.pdf"));
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
-
-        File selectedFile = fileChooser.showOpenDialog(null);
-
-        if (selectedFile != null) {
-            String fileName = selectedFile.getName();
-            if (fileName.toLowerCase().endsWith(".pdf")) {
-                fileName = fileName.substring(0, fileName.length() - 4);
-            }
-            titleField.setText(fileName);
-
-            try (PDDocument document = Loader.loadPDF(selectedFile)) {
-                if (!document.isEncrypted()) {
-                    PDFTextStripper stripper = new PDFTextStripper();
-                    String text = stripper.getText(document);
-                    String cleanedText = TextCleaner.clean(text);
-                    areaContent.setText(cleanedText);
-                } else {
-                    showError("El archivo está encriptado.");
-                }
-            } catch (Exception e) {
-                showError("Error al leer el PDF: " + e.getMessage());
-            }
+        File selected = fileChooser.showOpenDialog(null);
+        if (selected == null) {
+            return;
         }
-    }
-
-    private void saveFromUrl() {
-        openAddUrlWindow();
-    }
-
-    public void addTextFromUrl(String title, String content) {
-        titleField.setText(title);
-        areaContent.setText(TextCleaner.clean(content));
-    }
-
-    private void openAddUrlWindow() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/leelo/add_text_url.fxml"));
-            Parent root = loader.load();
-
-            addUrlController controller = loader.getController();
-
-            controller.setParentController(this);
-
-            Stage dialog = new Stage();
-            dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.setTitle("Agregar URL");
-            dialog.setScene(new Scene(root));
-            dialog.showAndWait();
-
-        } catch (IOException e) {
-            e.printStackTrace();
+            String content = textImportService.fromPdfFile(selected);
+            areaContent.setText(content);
+            titleField.setText(stripExtension(selected.getName()));
+            updateCharacterCount();
+        } catch (Exception e) {
+            showError("No se pudo leer el PDF: " + e.getMessage());
         }
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Error");
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void saveFromTxt() {
+    /** Loads the content of a plain text file. */
+    private void loadFromTxt() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Selecciona un archivo de texto");
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Archivos de texto (*.txt)", "*.txt"));
-        fileChooser.setInitialDirectory(new File(System.getProperty("user.home") + "/Documents"));
-
-        File selectedFile = fileChooser.showOpenDialog(null);
-        if (selectedFile != null) {
-            try {
-                String content = Files.readString(selectedFile.toPath());
-                String fileName = selectedFile.getName();
-                if (fileName.toLowerCase().endsWith(".txt")) {
-                    fileName = fileName.substring(0, fileName.length() - 4);
-                }
-
-                titleField.setText(fileName);
-                areaContent.setText(TextCleaner.clean(content));
-                System.out.println("Texto cargado desde: " + fileName);
-
-            } catch (IOException e) {
-                System.err.println("Error leyendo el archivo TXT: " + e.getMessage());
-            }
-        } else {
-            System.out.println("Selección cancelada.");
+        File selected = fileChooser.showOpenDialog(null);
+        if (selected == null) {
+            return;
+        }
+        try {
+            String content = TextCleaner.clean(Files.readString(selected.toPath()));
+            areaContent.setText(content);
+            titleField.setText(stripExtension(selected.getName()));
+            updateCharacterCount();
+        } catch (Exception e) {
+            showError("No se pudo leer el archivo: " + e.getMessage());
         }
     }
 
+    /** Loads the content of a web page. */
+    private void loadFromUrl() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/com/leelo/add_text_url.fxml"));
+            javafx.scene.Parent root = loader.load();
+            addUrlController controller = loader.getController();
+            controller.setParentController(this);
+
+            javafx.stage.Stage dialog = new javafx.stage.Stage();
+            dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            dialog.setTitle("Agregar URL");
+            dialog.setScene(new javafx.scene.Scene(root));
+            dialog.showAndWait();
+        } catch (Exception e) {
+            showError("No se pudo abrir la ventana: " + e.getMessage());
+        }
+    }
+
+    /** Fills the form with the content of a web page. */
+    public void addTextFromUrl(String title, String content) {
+        titleField.setText(title);
+        areaContent.setText(TextCleaner.clean(content));
+        updateCharacterCount();
+    }
+
+    /** Removes the extension of a file name. */
+    private String stripExtension(String name) {
+        int dot = name.lastIndexOf('.');
+        return dot > 0 ? name.substring(0, dot) : name;
+    }
+
+    /** Splits a comma separated list of tags. */
+    private List<String> splitTags(String text) {
+        List<String> tags = new ArrayList<>();
+        if (text == null) {
+            return tags;
+        }
+        for (String tag : text.split(",")) {
+            if (!tag.isBlank()) {
+                tags.add(tag.trim());
+            }
+        }
+        return tags;
+    }
+
+    /** Shows or hides the loading state of the form. */
     private void setLoadingState(boolean loading) {
         isLoading = loading;
-        loadingContainer.setVisible(loading);
-        loadingContainer.setManaged(loading);
-        buttonContainer.setVisible(!loading);
-        buttonContainer.setManaged(!loading);
-
-        // Disable form fields during loading
+        buttonContainer.setDisable(loading);
         titleField.setDisable(loading);
         areaContent.setDisable(loading);
     }
 
+    /** Returns to the library. */
     private void goToTexts() {
         try {
             App.setRoot("texts");
@@ -412,46 +364,28 @@ public class addTextController {
         }
     }
 
+    /** The kind of message shown below the form. */
     private enum MessageType {
-        SUCCESS, ERROR, WARNING, INFO
+        SUCCESS, ERROR, INFO
     }
 
+    /** Shows a message below the form. */
     private void showMessage(String message, MessageType type) {
         messageLabel.setText(message);
         messageContainer.setVisible(true);
-
-        // Clear existing style classes
-        messageLabel.getStyleClass().removeAll(
-                "validation-message-success",
-                "validation-message-error",
-                "validation-message-warning",
-                "validation-message-info");
-
-        // Apply appropriate style class
+        messageLabel.getStyleClass().removeAll("text-success", "text-error", "text-secondary");
         switch (type) {
-            case SUCCESS:
-                messageLabel.getStyleClass().add("validation-message-success");
-                break;
-            case ERROR:
-                messageLabel.getStyleClass().add("validation-message-error");
-                break;
-            case WARNING:
-                messageLabel.getStyleClass().add("validation-message-warning");
-                break;
-            case INFO:
-                messageLabel.getStyleClass().add("validation-message-info");
-                break;
+            case SUCCESS -> messageLabel.getStyleClass().add("text-success");
+            case ERROR -> messageLabel.getStyleClass().add("text-error");
+            case INFO -> messageLabel.getStyleClass().add("text-secondary");
         }
+    }
 
-        // Auto-hide success messages after 3 seconds
-        if (type == MessageType.SUCCESS) {
-            PauseTransition hideDelay = new PauseTransition(Duration.seconds(3));
-            hideDelay.setOnFinished(ev -> {
-                if (messageContainer.isVisible()) {
-                    messageContainer.setVisible(false);
-                }
-            });
-            hideDelay.play();
-        }
+    /** Shows an error dialog. */
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

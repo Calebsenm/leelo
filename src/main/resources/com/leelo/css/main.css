@@ -1,4 +1,4 @@
-/* 
+/*
     Leelo Application Style
 */
 
@@ -6,3 +6,4 @@
 @import "state.css";
 @import "utility.css";
 @import "reading.css";
+@import "graphics.css";

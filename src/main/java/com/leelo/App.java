@@ -1,7 +1,12 @@
 package com.leelo;
 
 import com.leelo.controller.HomeController;
+import com.leelo.controller.ReadingController;
+import com.leelo.controller.SideMenuController;
 import com.leelo.dao.Database;
+import com.leelo.dao.LegacyDataBridge;
+import com.leelo.model.Book;
+import com.leelo.service.SettingService;
 import com.leelo.util.ResponsiveManager;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -9,12 +14,15 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.Optional;
 
+/**
+ * The entry point of the application.
+ *
+ * <p>It owns the scene and knows how to move between the screens.
+ */
 public class App extends Application {
 
     private static Scene scene;
@@ -22,73 +30,73 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Cargar home con la nueva vista MVVM
-        HomeController homeController = new HomeController();
-        homeController.initialize();
-        
-        scene = new Scene(createHomeWithSideMenu(homeController), 720, 480);
+        Database.initialize();
+        LegacyDataBridge.importIfNeeded();
+        new SettingService().initializeDefaults();
+
+        scene = new Scene(createHome(), 1180, 760);
+        scene.getStylesheets().add(App.class.getResource("css/main.css").toExternalForm());
         stage.setScene(scene);
-        stage.setTitle("Leelo - Main Menu");
-        
-        // Initialize responsive design manager
+        stage.setTitle("Leelo");
+        stage.setMinWidth(980);
+        stage.setMinHeight(640);
+
         responsiveManager = ResponsiveManager.createAndInitialize(stage);
-        
         stage.show();
     }
-    
-    private static javafx.scene.layout.BorderPane createHomeWithSideMenu(HomeController homeController) throws IOException {
+
+    /** Builds the home screen, with the navigation bar on the left. */
+    private static Parent createHome() throws IOException {
         javafx.scene.layout.BorderPane root = new javafx.scene.layout.BorderPane();
-        
-        // Cargar side menu
-        FXMLLoader sideMenuLoader = new FXMLLoader(App.class.getResource("side_menu.fxml"));
-        javafx.scene.layout.VBox sideMenu = sideMenuLoader.load();
-        
-        root.setLeft(sideMenu);
-        root.setCenter(homeController.getView());
-        
+        root.getStyleClass().add("app-shell");
+        root.setLeft(loadSideMenu());
+        root.setCenter(new HomeController().getView());
         return root;
     }
 
-    public static void setRoot(String fxml) throws IOException {
-        scene.setRoot(loadFXML(fxml));
-        
-        // Ensure new root is managed by responsive system
+    /** Loads the navigation bar. */
+    private static javafx.scene.layout.VBox loadSideMenu() throws IOException {
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("side_menu.fxml"));
+        return loader.load();
+    }
+
+    /** Shows the home screen. */
+    public static void showHome() throws IOException {
+        SideMenuController.setCurrentSection("home");
+        scene.setRoot(createHome());
         if (responsiveManager != null && scene.getRoot() != null) {
             responsiveManager.addManagedNode(scene.getRoot());
         }
     }
 
-    private static Parent loadFXML(String fxml) throws IOException {
-        FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
-        return fxmlLoader.load();
+    /** Replaces the current screen with the one of the given file. */
+    public static void setRoot(String fxml) throws IOException {
+        SideMenuController.setCurrentSection(fxml);
+        FXMLLoader loader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
+        scene.setRoot(loader.load());
+        if (responsiveManager != null && scene.getRoot() != null) {
+            responsiveManager.addManagedNode(scene.getRoot());
+        }
     }
 
-    public static void main(String[] args) {
-        try {
-            // Solo crea la base de datos y las tablas si no existen
-            Database.initialize();
-
-            // Lanza la aplicación JavaFX
-            launch();
-
-        } catch (Exception e) {
-            System.err.println("Critical error during application startup: " + e.getMessage());
-            e.printStackTrace();
-
-            Platform.runLater(() -> {
-                showErrorDialog("Startup Error",
-                    "A critical error occurred during application startup.",
-                    e.getMessage());
-            });
-
-            System.exit(1);
+    /** Opens a book in the reading screen. */
+    public static void openReading(Book book) throws IOException {
+        SideMenuController.setCurrentSection("texts");
+        FXMLLoader loader = new FXMLLoader(App.class.getResource("reading.fxml"));
+        Parent root = loader.load();
+        ReadingController controller = loader.getController();
+        controller.setBook(book);
+        scene.setRoot(root);
+        Stage stage = (Stage) scene.getWindow();
+        if (stage != null) {
+            stage.setMaximized(true);
         }
     }
 
     public static Scene getScene() {
         return scene;
     }
-    
+
     /**
      * Get the responsive manager instance
      * @return ResponsiveManager instance or null if not initialized
@@ -97,32 +105,22 @@ public class App extends Application {
         return responsiveManager;
     }
 
-    /**
-     * Shows an error dialog to the user
-     * @param title Dialog title
-     * @param header Header text
-     * @param content Content text
-     */
-    private static void showErrorDialog(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
+    public static void main(String[] args) {
+        try {
+            launch();
+        } catch (Exception e) {
+            System.err.println("Critical error during application startup: " + e.getMessage());
+            e.printStackTrace();
 
-    /**
-     * Shows an information dialog to the user
-     * @param title Dialog title
-     * @param header Header text
-     * @param content Content text
-     */
-    private static void showInfoDialog(String title, String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Startup Error");
+                alert.setHeaderText("A critical error occurred during application startup.");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            });
 
+            System.exit(1);
+        }
+    }
 }

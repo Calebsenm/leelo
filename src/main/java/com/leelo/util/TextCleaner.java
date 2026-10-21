@@ -1,7 +1,5 @@
 package com.leelo.util;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 public class TextCleaner {
 

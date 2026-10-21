@@ -7,49 +7,77 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="520.0" prefWidth="753.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.textsController" stylesheets="@css/main.css">
+<BorderPane prefHeight="760.0" prefWidth="1180.0" styleClass="app-shell"
+            xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.leelo.controller.textsController" stylesheets="@css/main.css">
 
-  <left>
-    <fx:include source="side_menu.fxml" />
-  </left>
+    <left>
+        <fx:include source="side_menu.fxml" />
+    </left>
 
-  <center>
-    <VBox styleClass="page-container, max-content-width" VBox.vgrow="ALWAYS">
-      <!-- Header -->
-      <Label alignment="CENTER" maxWidth="Infinity" styleClass="title-xl, text-primary, center, section" text="Textos" />
-      
-      <!-- Search -->
-      <HBox styleClass="spacing-md, section">
-         <Label fx:id="searchTextLayout" styleClass="form-label" text="Buscar:" />
-         <TextField fx:id="searchText" styleClass="search-input" promptText="Buscar por palabras clave..." HBox.hgrow="ALWAYS" />
-      </HBox>
+    <center>
+        <VBox styleClass="page" VBox.vgrow="ALWAYS">
+            <children>
+                <HBox styleClass="page-header">
+                    <children>
+                        <VBox styleClass="page-heading">
+                            <children>
+                                <Label styleClass="page-title" text="Textos" />
+                                <Label styleClass="page-subtitle" text="Organiza tu biblioteca y retoma la lectura donde la dejaste." />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox styleClass="header-actions">
+                            <children>
+                                <Button fx:id="addButton" styleClass="btn, btn-primary" text="+ Nuevo texto" />
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
 
-      <!-- Table -->
-      <VBox styleClass="section" VBox.vgrow="ALWAYS">
-        <TableView fx:id="textsTable" styleClass="table-view" VBox.vgrow="ALWAYS">
-          <columnResizePolicy>
-              <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-          </columnResizePolicy>
-          <columns>
-            <TableColumn fx:id="dateCol" prefWidth="238.0" text="Fecha" />
-            <TableColumn fx:id="titleCol" prefWidth="433.0" text="Título" />
-          </columns>
-          <placeholder>
-            <Label text="No hay textos. Haz clic en 'Agregar'." styleClass="text-base, text-secondary" />
-          </placeholder>
-        </TableView>
-      </VBox>
+                <HBox styleClass="toolbar">
+                    <children>
+                        <TextField fx:id="searchText" prefWidth="380.0" styleClass="search-input"
+                                   promptText="Buscar por título o idioma..." />
+                        <Region HBox.hgrow="ALWAYS" />
+                    </children>
+                </HBox>
 
-      <!-- Actions -->
-      <HBox styleClass="spacing-md, center">
-        <Button fx:id="backButton" styleClass="btn" text="Volver" />
-        <Button fx:id="addButton" styleClass="btn" text="Agregar" />
-        <Button fx:id="editButton" styleClass="btn" text="Editar" />
-        <Button fx:id="deleteButton" styleClass="btn" text="Eliminar" />
-        <Button fx:id="readButton" styleClass="btn" text="Leer" />
-      </HBox>
-    </VBox>
-  </center>
+                <VBox styleClass="card, table-card" VBox.vgrow="ALWAYS">
+                    <children>
+                        <TableView fx:id="textsTable" styleClass="table-view" VBox.vgrow="ALWAYS">
+                            <columnResizePolicy>
+                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                            </columnResizePolicy>
+                            <columns>
+                                <TableColumn fx:id="titleCol" prefWidth="340.0" text="TÍTULO" />
+                                <TableColumn fx:id="languageCol" prefWidth="120.0" text="IDIOMA" />
+                                <TableColumn fx:id="pagesCol" prefWidth="90.0" text="PÁGINAS" />
+                                <TableColumn fx:id="progressCol" prefWidth="170.0" text="PROGRESO" />
+                                <TableColumn fx:id="dateCol" prefWidth="160.0" text="CREADO" />
+                            </columns>
+                            <placeholder>
+                                <Label text="Todavía no hay textos. Crea el primero con «Nuevo texto»."
+                                       styleClass="text-sm" />
+                            </placeholder>
+                        </TableView>
+                    </children>
+                </VBox>
+
+                <HBox styleClass="page-footer">
+                    <children>
+                        <Button fx:id="backButton" styleClass="btn, btn-ghost" text="←  Volver" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="editButton" styleClass="btn" text="Editar" />
+                        <Button fx:id="archiveButton" styleClass="btn" text="Archivar" />
+                        <Button fx:id="deleteButton" styleClass="btn, btn-danger" text="Eliminar" />
+                        <Button fx:id="readButton" styleClass="btn, btn-primary" text="Leer  →" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </center>
 </BorderPane>

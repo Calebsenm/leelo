@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane styleClass="app-shell" stylesheets="@css/main.css" xmlns="http://javafx.com/javafx/25"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.languageFormController">
+
+    <left>
+        <fx:include source="side_menu.fxml" />
+    </left>
+
+    <center>
+        <BorderPane>
+            <center>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="form-scroll" vbarPolicy="AS_NEEDED">
+                    <content>
+                <VBox alignment="TOP_CENTER" styleClass="page">
+                    <children>
+                        <VBox maxWidth="900.0" spacing="18">
+                            <children>
+                                <HBox styleClass="page-header">
+                                    <children>
+                                        <VBox styleClass="page-heading">
+                                            <children>
+                                                <Label fx:id="formTitleLabel" styleClass="page-title" text="Nuevo idioma" />
+                                                <Label styleClass="page-subtitle"
+                                                       text="Define cómo se reconocen las palabras y las frases de este idioma." />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </HBox>
+
+                                <VBox styleClass="card, form-card">
+                                    <children>
+                                        <Label styleClass="section-title" text="Identidad" />
+                                        <HBox spacing="16">
+                                            <children>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Nombre *" />
+                                                        <TextField fx:id="nameField" maxWidth="Infinity" styleClass="form-input" />
+                                                        <Label fx:id="nameValidationLabel" styleClass="text-sm, text-error"
+                                                               text="" visible="false" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Analizador de texto" />
+                                                        <ComboBox fx:id="parserCombo" maxWidth="Infinity" styleClass="form-input" />
+                                                        <Label styleClass="field-hint"
+                                                               text="Decide cómo se separan las palabras del texto." />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                        <VBox spacing="9">
+                                            <children>
+                                                <CheckBox fx:id="rightToLeftCheck" text="Se escribe de derecha a izquierda" />
+                                                <CheckBox fx:id="romanizationCheck" text="Mostrar pronunciación" />
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox styleClass="card, form-card">
+                                    <children>
+                                        <Label styleClass="section-title" text="Análisis del texto" />
+                                        <HBox spacing="16">
+                                            <children>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Caracteres de palabra" />
+                                                        <TextField fx:id="wordCharactersField" maxWidth="Infinity" styleClass="form-input" />
+                                                        <Label styleClass="field-hint" text="Ejemplo: a-zA-Z" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Fin de frase" />
+                                                        <TextField fx:id="splitSentencesField" maxWidth="Infinity" styleClass="form-input" />
+                                                        <Label styleClass="field-hint" text="Ejemplo: .!?" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                        <HBox spacing="16">
+                                            <children>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Excepciones de fin de frase" />
+                                                        <TextField fx:id="splitExceptionsField" maxWidth="Infinity" styleClass="form-input" />
+                                                        <Label styleClass="field-hint" text="Abreviaturas que no terminan una frase. Ejemplo: Mr.|Dr." />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Sustituciones de caracteres" />
+                                                        <TextField fx:id="characterSubstitutionsField" maxWidth="Infinity" styleClass="form-input" />
+                                                        <Label styleClass="field-hint" text="Reemplazos aplicados al texto. Ejemplo: ´='|'=' " />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox styleClass="card, form-card">
+                                    <children>
+                                        <Label styleClass="section-title" text="Diccionarios" />
+                                        <TextArea fx:id="dictionariesArea" maxWidth="Infinity" prefRowCount="4"
+                                                  promptText="terms | embeddedhtml | https://...&#10;sentences | popuphtml | https://..."
+                                                  styleClass="form-textarea" />
+                                        <Label styleClass="field-hint"
+                                               text="Una línea por diccionario: uso | tipo | dirección. El uso puede ser terms o sentences." />
+                                    </children>
+                                </VBox>
+
+                                <VBox fx:id="messageContainer" visible="false">
+                                    <children>
+                                        <Label fx:id="messageLabel" styleClass="text-sm, text-error" text="" wrapText="true" />
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+                    </content>
+                </ScrollPane>
+            </center>
+            <bottom>
+                <HBox styleClass="bottom-bar">
+                    <children>
+                        <Button fx:id="backButton" styleClass="btn, btn-ghost" text="←  Cancelar" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="saveButton" styleClass="btn, btn-primary" text="Guardar idioma" />
+                    </children>
+                </HBox>
+            </bottom>
+        </BorderPane>
+    </center>
+</BorderPane>

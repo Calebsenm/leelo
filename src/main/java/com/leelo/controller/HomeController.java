@@ -1,87 +1,79 @@
 package com.leelo.controller;
 
+import com.leelo.App;
+import com.leelo.model.Book;
 import com.leelo.view.HomeView;
 import com.leelo.viewmodel.HomeViewModel;
 import javafx.fxml.FXML;
 import javafx.scene.layout.StackPane;
 
+/**
+ * The home screen: the book being read and the library.
+ */
 public class HomeController {
-    
+
     private HomeViewModel viewModel;
     private HomeView view;
-    
+
     @FXML
     public void initialize() {
+        if (view != null) {
+            return;
+        }
         this.viewModel = new HomeViewModel();
         this.view = new HomeView();
-        
         bindViewModel();
     }
-    
+
+    /** Connects the view with the view model. */
     private void bindViewModel() {
-        // Actualizar vista cuando cambie el viewmodel
-        viewModel.bookTitleProperty().addListener((obs, oldVal, newVal) -> {
-            view.updateBookInfo(newVal, viewModel.getReadingProgress(), viewModel.getWordCount());
-        });
-        
-        viewModel.readingProgressProperty().addListener((obs, oldVal, newVal) -> {
-            view.updateBookInfo(viewModel.getBookTitle(), newVal.intValue(), viewModel.getWordCount());
-        });
-        
-        viewModel.wordCountProperty().addListener((obs, oldVal, newVal) -> {
-            view.updateBookInfo(viewModel.getBookTitle(), viewModel.getReadingProgress(), newVal.intValue());
-        });
-        
-        viewModel.hasBookProperty().addListener((obs, oldVal, newVal) -> {
-            view.showEmptyState(!newVal);
-        });
-        
-        // Configurar handlers
-        view.setBookCardClickHandler(this::handleOpenBook);
-        view.setAddButtonClickHandler(this::handleAddBook);
-        
-        // Inicializar vista
+        viewModel.bookTitleProperty().addListener((observable, oldValue, newValue) ->
+                view.updateBookInfo(newValue, viewModel.getReadingProgress(), viewModel.getWordCount()));
+        viewModel.readingProgressProperty().addListener((observable, oldValue, newValue) ->
+                view.updateBookInfo(viewModel.getBookTitle(), newValue.intValue(), viewModel.getWordCount()));
+        viewModel.wordCountProperty().addListener((observable, oldValue, newValue) ->
+                view.updateBookInfo(viewModel.getBookTitle(), viewModel.getReadingProgress(), newValue.intValue()));
+        viewModel.streakProperty().addListener((observable, oldValue, newValue) ->
+                view.setStreak(newValue.intValue()));
+
+        view.setOpenBookHandler(this::openSelectedBook);
+        view.setAddBookHandler(this::addBook);
+
         view.updateBookInfo(viewModel.getBookTitle(), viewModel.getReadingProgress(), viewModel.getWordCount());
-        view.showEmptyState(!viewModel.hasBook());
+        view.setStreak(viewModel.getStreak());
+        view.setBooks(viewModel.getBooks());
     }
-    
-    private void handleOpenBook() {
-        if (viewModel.hasBook() && viewModel.getLastOpenedBook() != null) {
-            try {
-                // Cargar la vista de lectura con el libro
-                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                    getClass().getResource("/com/leelo/reading.fxml")
-                );
-                javafx.scene.layout.BorderPane readingRoot = loader.load();
-                
-                // Obtener el controlador y pasarle el texto
-                ReadingController readingController = loader.getController();
-                readingController.setText(viewModel.getLastOpenedBook());
-                
-                // Cambiar la escena
-                com.leelo.App.getScene().setRoot(readingRoot);
-            } catch (Exception e) {
-                System.err.println("Error al abrir libro: " + e.getMessage());
-                e.printStackTrace();
-            }
+
+    /** Opens the book selected in the library. */
+    private void openSelectedBook() {
+        Book book = view.getSelectedBook();
+        if (book == null) {
+            book = viewModel.getLastOpenedBook();
         }
-    }
-    
-    private void handleAddBook() {
+        if (book == null) {
+            return;
+        }
         try {
-            com.leelo.App.setRoot("add_text");
+            App.openReading(book);
         } catch (Exception e) {
-            System.err.println("Error al navegar a agregar libro: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+
+    /** Opens the screen used to add a book. */
+    private void addBook() {
+        try {
+            App.setRoot("add_text");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Returns the view of the screen. */
     public StackPane getView() {
-        StackPane root = new StackPane();
-        root.getChildren().add(view);
-        root.getChildren().add(view.getAddButton());
-        StackPane.setAlignment(view.getAddButton(), javafx.geometry.Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(view.getAddButton(), new javafx.geometry.Insets(0, 30, 30, 0));
+        initialize();
+        StackPane root = new StackPane(view);
+        root.getStyleClass().add("app-shell");
         return root;
     }
-} 
+}

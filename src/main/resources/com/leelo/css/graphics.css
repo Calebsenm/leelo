@@ -1,47 +1,87 @@
+/*
+    Leelo · Charts
+*/
 
 .chart-container {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e2e8f0;
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
     -fx-border-width: 1;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
-    -fx-padding: 24;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 4, 0.1, 0, 1);
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
 }
 
-.chart-view {
-    -fx-background-color: #ffffff;
+.chart {
+    -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-padding: 16;
+    -fx-padding: 4 0 0 0;
 }
 
-.chart-view .chart-plot-background {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #f1f5f9;
-    -fx-border-width: 1;
+.chart-content {
+    -fx-padding: 2 6 0 0;
 }
 
-/* Colores para estados de aprendizaje */
-.chart-view .default-color0.chart-bar {
-    -fx-bar-fill: #ef4444;
+.chart-plot-background {
+    -fx-background-color: transparent;
 }
 
-.chart-view .default-color1.chart-bar {
-    -fx-bar-fill: #f97316;
+.chart-vertical-grid-lines,
+.chart-horizontal-zero-line {
+    -fx-stroke: transparent;
 }
 
-.chart-view .default-color2.chart-bar {
-    -fx-bar-fill: #eab308;
+.chart-horizontal-grid-lines {
+    -fx-stroke: #eeede7;
+    -fx-stroke-width: 1;
 }
 
-.chart-view .default-color3.chart-bar {
-    -fx-bar-fill: #22c55e;
+.chart-alternative-row-fill,
+.chart-alternative-column-fill {
+    -fx-fill: transparent;
+    -fx-stroke: transparent;
 }
 
-.chart-view .default-color4.chart-bar {
-    -fx-bar-fill: #10b981;
+.axis {
+    -fx-tick-label-fill: -text-muted;
+    -fx-tick-label-font-size: 10.5px;
+    -fx-tick-length: 0;
+    -fx-minor-tick-length: 0;
 }
 
-.chart-view .default-color5.chart-bar {
-    -fx-bar-fill: #059669;
+.axis .axis-label {
+    -fx-text-fill: -text-secondary;
+    -fx-font-size: 11px;
 }
+
+.axis-tick-mark,
+.axis-minor-tick-mark {
+    -fx-stroke: transparent;
+}
+
+.chart-bar {
+    -fx-bar-fill: -accent;
+    -fx-background-radius: 4 4 0 0;
+    -fx-background-insets: 0;
+}
+
+.chart-bar:hover {
+    -fx-bar-fill: -accent-hover;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 8 0;
+}
+
+.chart-legend-item {
+    -fx-text-fill: -text-secondary;
+    -fx-font-size: 11.5px;
+}
+
+/* Legacy colour series, kept so older charts do not lose their palette. */
+.chart-view .default-color0.chart-bar { -fx-bar-fill: #b3261e; }
+.chart-view .default-color1.chart-bar { -fx-bar-fill: #c2722a; }
+.chart-view .default-color2.chart-bar { -fx-bar-fill: #a96a00; }
+.chart-view .default-color3.chart-bar { -fx-bar-fill: #5c7c2c; }
+.chart-view .default-color4.chart-bar { -fx-bar-fill: #1f7a4d; }
+.chart-view .default-color5.chart-bar { -fx-bar-fill: #235e52; }

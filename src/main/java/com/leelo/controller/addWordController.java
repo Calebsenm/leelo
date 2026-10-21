@@ -1,212 +1,210 @@
 package com.leelo.controller;
 
-import com.leelo.model.Word;
-import com.leelo.service.WordService;
-import javafx.collections.FXCollections;
+import com.leelo.model.Language;
+import com.leelo.model.Term;
+import com.leelo.model.TermStatus;
+import com.leelo.service.LanguageService;
+import com.leelo.service.TermService;
+import com.leelo.util.TextTokens;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The form used to create a term or to change an existing one.
+ */
 public class addWordController {
-    @FXML public TextField termField;
-    @FXML private Label titleLabel;
-    @FXML private TextField pronunciationField;
-    @FXML private ComboBox<String> stateCombo;
-    @FXML private TextField urlImgField;
-    @FXML private Button saveButton;
-    @FXML private Label messageLabel;
-    @FXML private VBox meaningsContainer;
-    @FXML private Button addMeaningButton;
-    @FXML private ImageView imagePreview;
 
-    private final WordService WordService = new WordService();
-    private Word wordToEdit = null;
+    @FXML
+    private Label titleLabel;
+    @FXML
+    private ComboBox<Language> languageCombo;
+    @FXML
+    private TextField termField;
+    @FXML
+    private TextArea translationArea;
+    @FXML
+    private TextField pronunciationField;
+    @FXML
+    private ComboBox<TermStatus> statusCombo;
+    @FXML
+    private TextField parentsField;
+    @FXML
+    private TextField tagsField;
+    @FXML
+    private TextField urlImgField;
+    @FXML
+    private ImageView imagePreview;
+    @FXML
+    private Button saveButton;
+    @FXML
+    private Button deleteButton;
+    @FXML
+    private Button cancelButton;
+    @FXML
+    private Label messageLabel;
+
+    private final TermService termService = new TermService();
+    private final LanguageService languageService = new LanguageService();
+
+    private Term wordToEdit;
 
     @FXML
     public void initialize() {
-        stateCombo.setItems(FXCollections.observableArrayList("New", "Learning", "Learned", "Mastered"));
-        stateCombo.setValue("Learning");
-        addMeaningButton.setOnAction(e -> addMeaningField(""));
-        saveButton.setOnAction(e -> saveOrUpdateWord());
-        urlImgField.textProperty().addListener((obs, oldValue, newValue) -> refreshPreview(newValue));
-        ensureAtLeastOneMeaningField();
-        refreshPreview(urlImgField.getText());
+        List<Language> languages = languageService.getSupported();
+        languageCombo.getItems().setAll(languages);
+        if (!languages.isEmpty()) {
+            languageCombo.setValue(languages.get(0));
+        }
+
+        List<TermStatus> statuses = new ArrayList<>();
+        for (TermStatus status : TermStatus.values()) {
+            if (status.isAssignable()) {
+                statuses.add(status);
+            }
+        }
+        statusCombo.getItems().setAll(statuses);
+        statusCombo.setConverter(new com.leelo.view.StatusConverter());
+        statusCombo.setValue(TermStatus.NEW_1);
+
+        saveButton.setOnAction(event -> saveOrUpdateWord());
+        deleteButton.setOnAction(event -> deleteWord());
+        cancelButton.setOnAction(event -> closeWindow());
+        setDeleteVisible(false);
+        urlImgField.textProperty().addListener((observable, oldValue, newValue) -> refreshPreview(newValue));
     }
 
+    /** Fills the form with the text of a new term. */
     public void setDefaultTerm(String term) {
         titleLabel.setText("Nueva palabra");
+        setDeleteVisible(false);
         if (wordToEdit == null && term != null && !term.trim().isEmpty()) {
             termField.setText(term.trim());
         }
     }
 
-    public void setWordToEdit(Word word) {
-        this.wordToEdit = word;
-        if (word != null) {
-            titleLabel.setText("Editar palabra");
-            termField.setText(word.getTerm());
-            pronunciationField.setText(word.getPronunciation());
-            stateCombo.setValue(stateToString(word.getState()));
-            urlImgField.setText(word.getUrlImg());
-            this.wordToEdit.setIdTerm(word.getIdTerm());
-            loadMeaningFields(word.getTranslation());
-        } else {
+    /** Shows the delete action only while editing an existing term. */
+    private void setDeleteVisible(boolean visible) {
+        deleteButton.setVisible(visible);
+        deleteButton.setManaged(visible);
+    }
+
+    /** Fills the form with the data of the term being edited. */
+    public void setWordToEdit(Term term) {
+        this.wordToEdit = term;
+        if (term == null) {
             titleLabel.setText("Nueva palabra");
+            setDeleteVisible(false);
             urlImgField.clear();
             refreshPreview("");
+            return;
         }
+        titleLabel.setText("Editar palabra");
+        setDeleteVisible(true);
+        termField.setText(TextTokens.strip(term.getText()));
+        translationArea.setText(term.getTranslation());
+        pronunciationField.setText(term.getRomanization());
+        statusCombo.setValue(term.getStatus());
+        parentsField.setText(term.getParentList());
+        tagsField.setText(term.getTagList());
+        languageCombo.setValue(languageService.getById(term.getLanguageId()));
+        String source = term.getImage() == null ? "" : term.getImage().getSource();
+        urlImgField.setText(source);
+        refreshPreview(source);
     }
 
+    /** Saves the term. */
     private void saveOrUpdateWord() {
-        String term = termField.getText() != null ? termField.getText().trim() : "";
-        String translation = collectMeanings();
-        String pronunciation = pronunciationField.getText();
-        String stateStr = stateCombo.getValue();
-        String urlImg = urlImgField.getText();
-
-        if (term.isEmpty() || stateStr == null || translation.isEmpty()) {
-            showMessage("Completa termino, significados y estado.", true);
+        String text = termField.getText() == null ? "" : termField.getText().trim();
+        if (text.isEmpty()) {
+            showMessage("El termino es obligatorio.", true);
+            return;
+        }
+        Language language = languageCombo.getValue();
+        if (language == null) {
+            showMessage("Selecciona un idioma.", true);
             return;
         }
 
-        int state = stringToState(stateStr);
-        boolean ok;
-
+        Term term = wordToEdit != null ? wordToEdit : termService.buildTerm(language, text);
         if (wordToEdit != null) {
-            wordToEdit.setTerm(term);
-            wordToEdit.setTranslation(translation);
-            wordToEdit.setPronunciation(pronunciation);
-            wordToEdit.setState(state);
-            wordToEdit.setUrlImg(urlImg);
-            ok = WordService.updateWord(wordToEdit);
-        } else {
-            Word word = new Word();
-            word.setTerm(term);
-            word.setTranslation(translation);
-            word.setPronunciation(pronunciation);
-            word.setState(state);
-            word.setUrlImg(urlImg);
-            ok = WordService.addWord(word);
+            term.setText(termService.parseText(language, text));
+            term.setTextLc(termService.lowercase(language, term.getText()));
+            term.setTokenCount(TextTokens.countTokens(term.getText()));
         }
-
-        if (ok) {
-            showMessage("Guardado correctamente", false);
-            javafx.scene.Node node = saveButton;
-            javafx.stage.Window window = node.getScene().getWindow();
-            window.hide();
-        } else {
-            showMessage("No se pudo guardar la palabra.", true);
+        term.setLanguageId(language.getId());
+        term.setTranslation(translationArea.getText());
+        term.setRomanization(pronunciationField.getText());
+        TermStatus status = statusCombo.getValue();
+        if (status != null) {
+            term.setStatus(status);
         }
-    }
+        term.setTags(termService.resolveTags(splitList(tagsField.getText())));
+        term.setParents(resolveParents(language, parentsField.getText()));
 
-    private void loadMeaningFields(String translation) {
-        meaningsContainer.getChildren().clear();
-        List<String> meanings = parseMeanings(translation);
-        if (meanings.isEmpty()) {
-            addMeaningField("");
+        String error = termService.validate(term);
+        if (error != null) {
+            showMessage(error, true);
             return;
         }
-        for (String meaning : meanings) {
-            addMeaningField(meaning);
-        }
+        termService.save(term);
+        termService.setImage(term.getId(), urlImgField.getText() == null ? "" : urlImgField.getText().trim());
+        closeWindow();
     }
 
-    private List<String> parseMeanings(String raw) {
-        List<String> meanings = new ArrayList<>();
-        if (raw == null || raw.trim().isEmpty()) {
-            return meanings;
+    /** Deletes the term being edited. */
+    private void deleteWord() {
+        if (wordToEdit == null) {
+            return;
         }
-        String[] parts = raw.split("\\r?\\n|\\||;|,");
-        for (String part : parts) {
-            String cleaned = part.trim();
-            if (!cleaned.isEmpty()) {
-                meanings.add(cleaned);
+        termService.delete(wordToEdit.getId());
+        closeWindow();
+    }
+
+    /** Turns the parent names into the terms they point at. */
+    private List<Term> resolveParents(Language language, String text) {
+        List<Term> parents = new ArrayList<>();
+        for (String name : splitList(text)) {
+            Term parent = termService.findOrCreate(language, name);
+            if (parent.getId() > 0 && (wordToEdit == null || parent.getId() != wordToEdit.getId())) {
+                parents.add(parent);
             }
         }
-        if (meanings.isEmpty() && !raw.trim().isEmpty()) {
-            meanings.add(raw.trim());
-        }
-        return meanings;
+        return parents;
     }
 
-    private String collectMeanings() {
-        List<String> meanings = new ArrayList<>();
-        for (javafx.scene.Node node : meaningsContainer.getChildren()) {
-            if (!(node instanceof HBox)) {
-                continue;
-            }
-            HBox row = (HBox) node;
-            for (javafx.scene.Node child : row.getChildren()) {
-                if (child instanceof TextField) {
-                    String value = ((TextField) child).getText();
-                    if (value != null && !value.trim().isEmpty()) {
-                        meanings.add(value.trim());
-                    }
-                }
+    /** Splits a comma separated list. */
+    private List<String> splitList(String text) {
+        List<String> items = new ArrayList<>();
+        if (text == null) {
+            return items;
+        }
+        for (String item : text.split(",")) {
+            if (!item.isBlank()) {
+                items.add(item.trim());
             }
         }
-        return String.join(" | ", meanings);
+        return items;
     }
 
-    private void ensureAtLeastOneMeaningField() {
-        if (meaningsContainer.getChildren().isEmpty()) {
-            addMeaningField("");
-        }
-    }
-
-    private void addMeaningField(String value) {
-        HBox row = new HBox(6);
-        row.setAlignment(Pos.CENTER);
-
-        TextField meaningField = new TextField(value);
-        meaningField.setPromptText("Significado");
-        meaningField.setMaxWidth(Double.MAX_VALUE);
-        meaningField.setStyle(
-                "-fx-background-color: #f8fafc;" +
-                "-fx-border-color: #d1d5db;" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;" +
-                "-fx-padding: 9 12;");
-        HBox.setHgrow(meaningField, Priority.ALWAYS);
-
-        Button removeButton = new Button("Eliminar");
-        removeButton.setStyle(
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: 600;" +
-                "-fx-text-fill: #b91c1c;" +
-                "-fx-padding: 7 10;" +
-                "-fx-background-color: #fef2f2;" +
-                "-fx-border-color: #fecaca;" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;" +
-                "-fx-cursor: hand;");
-        removeButton.setOnAction(e -> {
-            meaningsContainer.getChildren().remove(row);
-            ensureAtLeastOneMeaningField();
-        });
-
-        row.getChildren().addAll(meaningField, removeButton);
-        meaningsContainer.getChildren().add(row);
-    }
-
-    private void showMessage(String message, boolean isError) {
+    /** Shows a message below the form. */
+    private void showMessage(String message, boolean error) {
         messageLabel.setText(message);
         messageLabel.setVisible(true);
-        messageLabel.setStyle(isError ? "-fx-text-fill: red;" : "-fx-text-fill: green;");
+        messageLabel.getStyleClass().removeAll("text-error", "text-success");
+        messageLabel.getStyleClass().add(error ? "text-error" : "text-success");
     }
 
+    /** Loads the preview of the image of the term. */
     private void refreshPreview(String imageUrl) {
         String cleanUrl = imageUrl == null ? "" : imageUrl.trim();
         if (cleanUrl.isEmpty()) {
@@ -215,72 +213,32 @@ public class addWordController {
             imagePreview.setManaged(false);
             return;
         }
-
-        loadImageIntoView(cleanUrl, imagePreview, null);
-    }
-
-    private void loadImageIntoView(String imageUrl, ImageView imageView, Label statusLabel) {
-        imageView.setImage(null);
-        if (statusLabel != null) {
-            statusLabel.setVisible(true);
-            statusLabel.setText("Cargando...");
-        }
-
-        Task<Image> imageTask = new Task<>() {
+        Task<Image> task = new Task<>() {
             @Override
-            protected Image call() throws Exception {
-                return new Image(imageUrl, true);
+            protected Image call() {
+                return new Image(cleanUrl, true);
             }
         };
-
-        imageTask.setOnSucceeded(e -> {
-            Image image = imageTask.getValue();
-            imageView.setImage(image);
-            imageView.setVisible(true);
-            imageView.setManaged(true);
-            if (imageView == imagePreview) {
-                imagePreview.setVisible(true);
-                imagePreview.setManaged(true);
-            }
-            if (statusLabel != null) {
-                statusLabel.setVisible(false);
-            }
+        task.setOnSucceeded(event -> {
+            imagePreview.setImage(task.getValue());
+            imagePreview.setVisible(true);
+            imagePreview.setManaged(true);
         });
-
-        imageTask.setOnFailed(e -> {
-            imageView.setImage(null);
-            if (imageView == imagePreview) {
-                imagePreview.setVisible(false);
-                imagePreview.setManaged(false);
-            }
-            if (statusLabel != null) {
-                statusLabel.setText("No se pudo cargar");
-                statusLabel.setVisible(true);
-            }
+        task.setOnFailed(event -> {
+            imagePreview.setImage(null);
+            imagePreview.setVisible(false);
+            imagePreview.setManaged(false);
         });
-
-        Thread worker = new Thread(imageTask, "image-download-task");
+        Thread worker = new Thread(task, "leelo-term-image");
         worker.setDaemon(true);
         worker.start();
     }
 
-    private int stringToState(String state) {
-        switch (state) {
-            case "New": return 1;
-            case "Learning": return 2;
-            case "Learned": return 3;
-            case "Mastered": return 4;
-            default: return 2;
-        }
-    }
-
-    private String stateToString(int state) {
-        switch (state) {
-            case 1: return "New";
-            case 2: return "Learning";
-            case 3: return "Learned";
-            case 4: return "Mastered";
-            default: return "Learning";
+    /** Closes the window holding the form. */
+    private void closeWindow() {
+        javafx.stage.Window window = saveButton.getScene().getWindow();
+        if (window != null) {
+            window.hide();
         }
     }
 }

@@ -248,8 +248,8 @@ public class ResponsiveManager {
      * Set minimum window constraints based on responsive requirements
      */
     public void setMinimumConstraints() {
-        stage.setMinWidth(400); // Minimum usable width
-        stage.setMinHeight(300); // Minimum usable height
+        stage.setMinWidth(980);
+        stage.setMinHeight(640);
     }
     
     /**

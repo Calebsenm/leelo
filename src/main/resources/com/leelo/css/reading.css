@@ -1,79 +1,281 @@
+/*
+    Leelo · Reading screen
+    ---------------------------------------------------------------------
+    The chrome is quiet; the page keeps the centre of the screen.
+*/
 
-.reading-controls-minimal {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #e5e7eb;
+.reading-header {
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
     -fx-border-width: 0 0 1 0;
-    -fx-padding: 16 40;
-    -fx-spacing: 40;
-    -fx-min-height: 64;
-    -fx-max-height: 64;
+    -fx-padding: 10 20;
+    -fx-spacing: 10;
+    -fx-min-height: 58;
+    -fx-alignment: center-left;
+}
+
+.reading-title-box {
+    -fx-spacing: 1;
+    -fx-max-width: 300;
+}
+
+.reading-title {
+    -fx-font-size: 14.5px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text;
+    -fx-text-overflow: ellipsis;
+}
+
+.reading-language {
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-muted;
+}
+
+.reading-toolbar {
+    -fx-spacing: 4;
+    -fx-alignment: center-right;
+}
+
+.toolbar-group {
+    -fx-background-color: -surface-muted;
+    -fx-border-color: -border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 2;
+    -fx-spacing: 1;
     -fx-alignment: center;
 }
 
+.toolbar-group .btn-minimal {
+    -fx-font-size: 11.5px;
+    -fx-padding: 5 8;
+    -fx-min-height: 28;
+    -fx-background-radius: 6;
+}
+
+.toolbar-toggle-active {
+    -fx-background-color: -accent-soft;
+    -fx-text-fill: -accent;
+}
+
+.toolbar-toggle-active:hover {
+    -fx-background-color: -accent-soft;
+    -fx-text-fill: -accent;
+}
+
+.toolbar-divider {
+    -fx-min-width: 1;
+    -fx-max-width: 1;
+    -fx-min-height: 20;
+    -fx-max-height: 20;
+    -fx-background-color: -border;
+}
+
+.reading-pager {
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 2;
+    -fx-spacing: 1;
+    -fx-alignment: center;
+    -fx-min-width: 138;
+}
+
+.reading-pager .btn-minimal {
+    -fx-font-size: 16px;
+    -fx-padding: 2 8;
+    -fx-min-width: 30;
+    -fx-min-height: 28;
+}
+
+.reading-page-label {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: -text-secondary;
+    -fx-min-width: 64;
+    -fx-alignment: center;
+}
+
+/* ---------------------------------------------------------------------
+   Reading surface
+   --------------------------------------------------------------------- */
+
 .reading-content-clean {
-    -fx-background-color: #ffffff;
+    -fx-background-color: -surface;
+    -fx-background-insets: 0;
     -fx-border-color: transparent;
     -fx-padding: 0;
 }
 
-.reading-content-clean .scroll-pane {
-    -fx-background: transparent;
+.reading-content-clean > .viewport {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
-}
-
-.reading-content-clean .viewport {
-    -fx-background-color: #ffffff;
 }
 
 .reading-text-clean {
-    -fx-padding: 50;
-    -fx-spacing: 28;
-    -fx-background-color: #ffffff;
-    -fx-font-size: 17px;
-    -fx-line-spacing: 1.8;
+    -fx-padding: 54 32 140 32;
+    -fx-spacing: 24;
+    -fx-background-color: -surface;
 }
 
-/* Estados de palabras en lectura */
-.word-new {
-    -fx-text-fill: #2563eb;
+.reading-paragraph {
+    -fx-line-spacing: 8;
+}
+
+/* Floating exit shown only while the focus mode hides the chrome. */
+.focus-exit {
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
+    -fx-border-width: 1;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 6 13;
+    -fx-font-size: 11.5px;
+    -fx-effect: dropshadow(gaussian, rgba(24, 24, 18, 0.08), 10, 0.05, 0, 2);
+    -fx-opacity: 0.72;
+}
+
+.focus-exit:hover {
+    -fx-background-color: -surface-hover;
+    -fx-text-fill: -text;
+    -fx-opacity: 1;
+}
+
+.focus-pager {
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
+    -fx-border-width: 1;
+    -fx-border-radius: 999;
+    -fx-background-radius: 999;
+    -fx-padding: 3 5;
+    -fx-effect: dropshadow(gaussian, rgba(24, 24, 18, 0.08), 10, 0.05, 0, 2);
+    -fx-opacity: 0.72;
+}
+
+.focus-pager:hover {
+    -fx-opacity: 1;
+}
+
+.focus-pager .btn-minimal {
+    -fx-font-size: 16px;
+    -fx-padding: 2 9;
+    -fx-min-width: 30;
+    -fx-min-height: 28;
+    -fx-background-radius: 999;
+}
+
+/* ---------------------------------------------------------------------
+   Term details panel
+   --------------------------------------------------------------------- */
+
+.term-panel {
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
+    -fx-border-width: 0 0 0 1;
+    -fx-padding: 20 20 18 20;
+    -fx-spacing: 10;
+}
+
+.term-panel-header {
+    -fx-spacing: 8;
+    -fx-alignment: top-left;
+}
+
+.term-word {
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text;
+}
+
+.term-pronunciation {
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-muted;
+}
+
+.term-panel .form-textarea {
+    -fx-min-height: 86;
+}
+
+.term-image-frame {
+    -fx-background-color: -surface-muted;
+    -fx-border-color: -border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 6;
+    -fx-alignment: center;
+}
+
+.status-button {
+    -fx-padding: 5 11;
+    -fx-background-color: -surface;
+    -fx-background-radius: 999;
+    -fx-border-color: -border-strong;
+    -fx-border-width: 1;
+    -fx-border-radius: 999;
+    -fx-text-fill: -text-secondary;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: 600;
     -fx-cursor: hand;
-    -fx-font-weight: 500;
 }
 
-.word-learning {
-    -fx-text-fill: #f59e0b;
+.status-button:hover {
+    -fx-border-color: -accent;
+    -fx-text-fill: -accent;
+}
+
+/* ---------------------------------------------------------------------
+   Reading footer and words
+   --------------------------------------------------------------------- */
+
+.reading-footer {
+    -fx-background-color: -surface;
+    -fx-border-color: -border;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 8 20;
+    -fx-spacing: 12;
+    -fx-min-height: 50;
+    -fx-alignment: center-left;
+}
+
+.reading-footer .btn-sm {
+    -fx-font-size: 11.5px;
+    -fx-padding: 5 11;
+    -fx-min-height: 30;
+}
+
+.reading-legend {
+    -fx-hgap: 11;
+    -fx-vgap: 6;
+    -fx-padding: 0;
+    -fx-alignment: center-left;
+}
+
+.legend-label {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: -text-muted;
+    -fx-padding: 0 2 0 0;
+}
+
+.status-dot {
+    -fx-min-width: 9;
+    -fx-min-height: 9;
+    -fx-max-width: 9;
+    -fx-max-height: 9;
+    -fx-background-radius: 5;
+    -fx-border-color: rgba(0, 0, 0, 0.12);
+    -fx-border-radius: 5;
+    -fx-border-width: 1;
     -fx-cursor: hand;
-    -fx-font-weight: 500;
 }
 
-.word-learned {
-    -fx-text-fill: #10b981;
-    -fx-cursor: hand;
-    -fx-font-weight: 500;
-}
-
-.word-mastered {
-    -fx-text-fill: #6b7280;
+.term-word-link {
     -fx-cursor: hand;
 }
 
-.word-new:hover {
-    -fx-text-fill: #1d4ed8;
-    -fx-underline: true;
-}
-
-.word-learning:hover {
-    -fx-text-fill: #d97706;
-    -fx-underline: true;
-}
-
-.word-learned:hover {
-    -fx-text-fill: #059669;
-    -fx-underline: true;
-}
-
-.word-mastered:hover {
-    -fx-text-fill: #374151;
-    -fx-underline: true;
-}
+/* Legacy state classes, still used by tests or external styles */
+.word-new { -fx-text-fill: #235e52; -fx-cursor: hand; }
+.word-learning { -fx-text-fill: #a96a00; -fx-cursor: hand; }
+.word-learned { -fx-text-fill: #1f7a4d; -fx-cursor: hand; }
+.word-mastered { -fx-text-fill: #5e5e56; -fx-cursor: hand; }

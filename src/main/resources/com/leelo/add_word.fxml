@@ -5,37 +5,115 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" stylesheets="@css/main.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.leelo.controller.addWordController">
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="dialog-shell" stylesheets="@css/main.css"
+            vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.leelo.controller.addWordController">
     <content>
-        <VBox fx:id="modalRoot" alignment="TOP_CENTER" spacing="12" prefWidth="390.0" minWidth="390.0" styleClass="form-compact" style="-fx-padding: 16; -fx-background-radius: 10; -fx-border-radius: 10;">
+        <VBox styleClass="dialog-body">
             <children>
-                <Label fx:id="titleLabel" text="Editar palabra" style="-fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: #1f2937;" />
-                <Label text="Gestiona significados y estado de aprendizaje" styleClass="text-xs, text-secondary" />
-                <Separator prefWidth="340" />
+                <VBox spacing="3">
+                    <children>
+                        <Label fx:id="titleLabel" styleClass="dialog-title" text="Nueva palabra" />
+                        <Label styleClass="dialog-subtitle"
+                               text="Gestiona la traducción, el estado y la información del término." />
+                    </children>
+                </VBox>
 
-                <Label text="Palabra" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
-                <TextField fx:id="termField" maxWidth="340.0" promptText="Termino" />
+                <Separator />
 
-                <Label text="Significados" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
-                <VBox fx:id="meaningsContainer" spacing="8" maxWidth="340.0" prefWidth="340.0" />
-                <Button fx:id="addMeaningButton" styleClass="btn" maxWidth="340.0" text="+ Agregar significado" />
+                <HBox spacing="12">
+                    <children>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label styleClass="form-label" text="Idioma" />
+                                <ComboBox fx:id="languageCombo" maxWidth="Infinity" styleClass="form-input" />
+                            </children>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label styleClass="form-label" text="Estado" />
+                                <ComboBox fx:id="statusCombo" maxWidth="Infinity" styleClass="form-input" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
 
-                <Label text="Pronunciacion (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
-                <TextField fx:id="pronunciationField" maxWidth="340.0" promptText="Pronunciacion" />
+                <VBox spacing="6">
+                    <children>
+                        <Label styleClass="form-label" text="Término *" />
+                        <TextField fx:id="termField" maxWidth="Infinity" promptText="Palabra o expresión"
+                                   styleClass="form-input" />
+                    </children>
+                </VBox>
 
-                <Label text="URL imagen (opcional)" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
-                <TextField fx:id="urlImgField" maxWidth="340.0" promptText="https://..." />
-                <ImageView fx:id="imagePreview" fitHeight="110.0" fitWidth="160.0" pickOnBounds="true" preserveRatio="true" visible="false" managed="false" />
+                <VBox spacing="6">
+                    <children>
+                        <Label styleClass="form-label" text="Traducción" />
+                        <TextArea fx:id="translationArea" prefRowCount="3" styleClass="form-textarea" wrapText="true" />
+                    </children>
+                </VBox>
 
-                <Label text="Estado" style="-fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #374151;" />
-                <ComboBox fx:id="stateCombo" maxWidth="340.0" />
+                <VBox spacing="6">
+                    <children>
+                        <Label styleClass="form-label" text="Pronunciación" />
+                        <TextField fx:id="pronunciationField" maxWidth="Infinity" promptText="Opcional"
+                                   styleClass="form-input" />
+                    </children>
+                </VBox>
 
-                <Button fx:id="saveButton" styleClass="btn" maxWidth="340.0" minHeight="34.0" text="Guardar palabra" />
-                <Label fx:id="messageLabel" styleClass="text-xs, text-error" text="" visible="false" />
+                <HBox spacing="12">
+                    <children>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label styleClass="form-label" text="Padres" />
+                                <TextField fx:id="parentsField" maxWidth="Infinity" promptText="Separados por comas"
+                                           styleClass="form-input" />
+                            </children>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label styleClass="form-label" text="Etiquetas" />
+                                <TextField fx:id="tagsField" maxWidth="Infinity" promptText="Separadas por comas"
+                                           styleClass="form-input" />
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <VBox spacing="6">
+                    <children>
+                        <Label styleClass="form-label" text="Imagen" />
+                        <TextField fx:id="urlImgField" maxWidth="Infinity" promptText="https://..."
+                                   styleClass="form-input" />
+                    </children>
+                </VBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <children>
+                        <ImageView fx:id="imagePreview" fitHeight="110.0" fitWidth="160.0" pickOnBounds="true"
+                                   preserveRatio="true" visible="false" managed="false" />
+                    </children>
+                </HBox>
+
+                <Label fx:id="messageLabel" styleClass="text-xs, text-error" text="" visible="false" wrapText="true" />
+
+                <Separator />
+
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <children>
+                        <Button fx:id="deleteButton" styleClass="btn, btn-danger" text="Eliminar" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="cancelButton" styleClass="btn, btn-ghost" text="Cancelar" />
+                        <Button fx:id="saveButton" styleClass="btn, btn-primary" text="Guardar" />
+                    </children>
+                </HBox>
             </children>
         </VBox>
     </content>

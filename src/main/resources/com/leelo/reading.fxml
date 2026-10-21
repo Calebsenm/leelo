@@ -1,49 +1,194 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane 
-    styleClass="root" 
-    stylesheets="@css/main.css" 
-    xmlns="http://javafx.com/javafx/23.0.1" 
-    xmlns:fx="http://javafx.com/fxml/1" 
-    fx:controller="com.leelo.controller.ReadingController">
+<BorderPane fx:id="rootPane" styleClass="app-shell" stylesheets="@css/main.css"
+            xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.leelo.controller.ReadingController">
 
     <left>
         <fx:include fx:id="menu" source="side_menu.fxml" />
     </left>
-    <top>
-        <HBox alignment="CENTER" styleClass="reading-controls-minimal">
-            <!-- Navigation -->
-            <Button fx:id="prevPageButton" styleClass="btn" prefWidth="90.0" text="‹ Prev">
-                <tooltip><Tooltip text="Página Anterior" /></tooltip>
-            </Button>
-            <Label fx:id="pageLabel" styleClass="text-base, text-primary" text="Página 1/1" />
-            <Button fx:id="nextPageButton" styleClass="btn" prefWidth="90.0" text=" Next ›">
-                <tooltip><Tooltip text="Página Siguiente" /></tooltip>
-            </Button>
-            
-            <!-- Font Controls -->
-            <Button fx:id="decreaseFontButton" styleClass="btn" text="A-">
-                <tooltip><Tooltip text="Reducir fuente" /></tooltip>
-            </Button>
-            <Button fx:id="increaseFontButton" styleClass="btn" text="A+">
-                <tooltip><Tooltip text="Aumentar fuente" /></tooltip>
-            </Button>
-            
-        </HBox>
-    </top>
+
     <center>
-        <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="reading-content-clean">
-            <content>
-                <VBox fx:id="textVBox" styleClass="reading-text-clean" />
-            </content>
-        </ScrollPane>
+        <BorderPane>
+            <top>
+                <HBox fx:id="headerBar" alignment="CENTER_LEFT" styleClass="reading-header">
+                    <children>
+                        <VBox styleClass="reading-title-box">
+                            <children>
+                                <Label fx:id="titleLabel" maxWidth="280.0" styleClass="reading-title" text="Texto" />
+                                <Label fx:id="languageLabel" styleClass="reading-language" text="" />
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox alignment="CENTER_RIGHT" styleClass="toolbar-group">
+                            <children>
+                                <Button fx:id="bookmarkButton" styleClass="btn-minimal" text="Marcador">
+                                    <tooltip><Tooltip text="Guardar esta página en marcadores" /></tooltip>
+                                </Button>
+                                <Button fx:id="highlightButton" styleClass="btn-minimal" text="Colores">
+                                    <tooltip><Tooltip text="Mostrar u ocultar los colores de las palabras" /></tooltip>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <HBox alignment="CENTER_RIGHT" styleClass="toolbar-group">
+                            <children>
+                                <Button fx:id="fontDecreaseButton" styleClass="btn-minimal" text="A−">
+                                    <tooltip><Tooltip text="Reducir el tamaño del texto" /></tooltip>
+                                </Button>
+                                <Button fx:id="fontIncreaseButton" styleClass="btn-minimal" text="A+">
+                                    <tooltip><Tooltip text="Aumentar el tamaño del texto" /></tooltip>
+                                </Button>
+                            </children>
+                        </HBox>
+                        <Button fx:id="focusButton" styleClass="btn-minimal" text="Enfoque">
+                            <tooltip><Tooltip text="Ocultar todo excepto el texto" /></tooltip>
+                        </Button>
+                        <HBox alignment="CENTER" styleClass="reading-pager">
+                            <children>
+                                <Button fx:id="prevPageButton" styleClass="btn-minimal" text="‹">
+                                    <tooltip><Tooltip text="Página anterior" /></tooltip>
+                                </Button>
+                                <Label fx:id="pageLabel" styleClass="reading-page-label" text="1 / 1" />
+                                <Button fx:id="nextPageButton" styleClass="btn-minimal" text="›">
+                                    <tooltip><Tooltip text="Página siguiente" /></tooltip>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
+            </top>
+            <center>
+                <StackPane>
+                    <children>
+                        <ScrollPane fx:id="scrollPane" fitToWidth="true" styleClass="reading-content-clean">
+                            <content>
+                                <StackPane alignment="TOP_CENTER">
+                                    <children>
+                                        <VBox fx:id="paragraphsBox" maxWidth="780.0" styleClass="reading-text-clean" />
+                                    </children>
+                                </StackPane>
+                            </content>
+                        </ScrollPane>
+                        <Button fx:id="exitFocusButton" focusTraversable="false" managed="false"
+                                maxWidth="-Infinity" styleClass="btn-minimal, focus-exit"
+                                StackPane.alignment="TOP_RIGHT" text="Salir de enfoque" visible="false">
+                            <tooltip><Tooltip text="También puedes pulsar Esc" /></tooltip>
+                            <StackPane.margin>
+                                <Insets right="18.0" top="14.0" />
+                            </StackPane.margin>
+                        </Button>
+                        <HBox fx:id="focusPager" alignment="CENTER" managed="false" maxHeight="-Infinity"
+                              maxWidth="-Infinity" spacing="1.0" styleClass="focus-pager"
+                              StackPane.alignment="BOTTOM_CENTER" visible="false">
+                            <children>
+                                <Button fx:id="focusPrevPageButton" focusTraversable="false"
+                                        styleClass="btn-minimal" text="‹">
+                                    <tooltip><Tooltip text="Página anterior" /></tooltip>
+                                </Button>
+                                <Label fx:id="focusPageLabel" styleClass="reading-page-label" text="1 / 1" />
+                                <Button fx:id="focusNextPageButton" focusTraversable="false"
+                                        styleClass="btn-minimal" text="›">
+                                    <tooltip><Tooltip text="Página siguiente" /></tooltip>
+                                </Button>
+                            </children>
+                            <StackPane.margin>
+                                <Insets bottom="18.0" />
+                            </StackPane.margin>
+                        </HBox>
+                    </children>
+                </StackPane>
+            </center>
+            <right>
+                <VBox fx:id="termPanel" managed="false" prefWidth="344.0" styleClass="term-panel" visible="false">
+                    <children>
+                        <HBox alignment="TOP_LEFT" styleClass="term-panel-header">
+                            <children>
+                                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label styleClass="eyebrow" text="DETALLE DEL TÉRMINO" />
+                                        <Label fx:id="termTitleLabel" styleClass="term-word" text="" wrapText="true" />
+                                        <Label fx:id="pronunciationLabel" styleClass="term-pronunciation" text=""
+                                               wrapText="true" />
+                                    </children>
+                                </VBox>
+                                <Button fx:id="closeTermButton" styleClass="btn-icon" text="×">
+                                    <tooltip><Tooltip text="Cerrar el detalle" /></tooltip>
+                                </Button>
+                            </children>
+                        </HBox>
+
+                        <Separator />
+
+                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="form-scroll" VBox.vgrow="ALWAYS"
+                                    vbarPolicy="AS_NEEDED">
+                            <content>
+                                <VBox spacing="10">
+                                    <children>
+                                        <Label styleClass="form-label" text="Traducción" />
+                                        <TextArea fx:id="translationArea" prefRowCount="3" styleClass="form-textarea"
+                                                  wrapText="true" />
+
+                                        <Label styleClass="form-label" text="Padres" />
+                                        <TextField fx:id="parentsField" promptText="Separados por comas"
+                                                   styleClass="form-input" />
+
+                                        <Label styleClass="form-label" text="Etiquetas" />
+                                        <TextField fx:id="tagsField" promptText="Separadas por comas"
+                                                   styleClass="form-input" />
+
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <ImageView fx:id="termImageView" fitHeight="130.0" fitWidth="210.0"
+                                                           managed="false" preserveRatio="true" visible="false" />
+                                            </children>
+                                        </HBox>
+
+                                        <Label styleClass="form-label" text="Estado" />
+                                        <FlowPane fx:id="statusButtons" hgap="6.0" vgap="6.0" />
+                                    </children>
+                                </VBox>
+                            </content>
+                        </ScrollPane>
+
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <children>
+                                <Button fx:id="deleteTermButton" styleClass="btn, btn-danger, btn-sm" text="Eliminar" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Button fx:id="saveTermButton" styleClass="btn, btn-primary, btn-sm" text="Guardar" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </right>
+            <bottom>
+                <HBox fx:id="footerBar" alignment="CENTER_LEFT" styleClass="reading-footer">
+                    <children>
+                        <Label styleClass="legend-label" text="Leyenda" />
+                        <FlowPane fx:id="statusLegend" styleClass="reading-legend" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="progressLabel" styleClass="text-xs" text="" />
+                        <Button fx:id="markReadButton" styleClass="btn, btn-primary, btn-sm" text="Marcar como leída">
+                            <tooltip><Tooltip text="Marcar la página como leída y pasar a la siguiente" /></tooltip>
+                        </Button>
+                    </children>
+                </HBox>
+            </bottom>
+        </BorderPane>
     </center>
 </BorderPane>
