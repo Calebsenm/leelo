@@ -60,6 +60,22 @@ build your vocabulary as you go.
 - The **progress of a book**: the share of the words that are still unknown,
   calculated from the pages around the one being read.
 
+### AI Assistance (Ollama)
+
+Leelo supports local AI to assist your reading with automatic definitions, translations, and contextual examples:
+- **Instant translations & definitions**: Click the ✨ **IA** button in the reading term panel or the add-word screen to fetch definitions, Spanish translations, and sample sentences from your local model.
+- **Optional auto-translate**: Automatically fetch AI definitions as soon as you click an unfamiliar word.
+- **100% private and offline**: Powered by [Ollama](https://ollama.com/) — your reading data never leaves your machine.
+
+#### Setting up Ollama for Leelo:
+1. **Install Ollama**: Download and install it from [ollama.com](https://ollama.com/).
+2. **Download a model**: Open your terminal and pull a model (such as `qwen2.5:3b` or `llama3.2`):
+   ```bash
+   ollama pull qwen2.5:3b
+   ```
+3. **Start Ollama**: Make sure Ollama is running in the background (`ollama serve` or through its desktop tray app).
+4. **Configure in Leelo**: Go to **Settings** (`Ajustes`), verify the Ollama URL (`http://localhost:11434`), and select your model. You can test the connection directly from the settings page.
+
 ### Settings
 
 - The current language, whether the words are coloured, the size of the text and

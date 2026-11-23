@@ -37,6 +37,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -124,6 +125,8 @@ public class ReadingController {
     private TextField tagsField;
     @FXML
     private ImageView termImageView;
+    @FXML
+    private Label statusNameLabel;
     @FXML
     private FlowPane statusButtons;
     @FXML
@@ -365,6 +368,10 @@ public class ReadingController {
         termPanel.setManaged(false);
         selectedTerm = null;
         selectedItem = null;
+        if (statusNameLabel != null) {
+            statusNameLabel.setText("");
+        }
+        updateStatusButtons();
     }
 
     /** Clears AI status feedback and re-enables the AI button. */
@@ -442,11 +449,14 @@ public class ReadingController {
             if (!status.isAssignable()) {
                 continue;
             }
-            Button button = new Button(StatusConverter.labelFor(status));
+            Button button = new Button(status.getAbbreviation());
             button.getStyleClass().add("status-button");
+            Tooltip.install(button,
+                    new Tooltip(StatusConverter.labelFor(status) + " (" + status.getAbbreviation() + ")"));
             button.setOnAction(event -> applyStatus(status));
             statusButtons.getChildren().add(button);
         }
+        updateStatusButtons();
     }
 
     /** Builds the legend showing the colour of every status. */
@@ -459,8 +469,8 @@ public class ReadingController {
             String color = status.isHighlighted()
                     ? toCssColor(theme.getStatusColor(status)) : "transparent";
             dot.setStyle("-fx-background-color: " + color + ";");
-            javafx.scene.control.Tooltip.install(dot,
-                    new javafx.scene.control.Tooltip(StatusConverter.labelFor(status)));
+            Tooltip.install(dot,
+                    new Tooltip(StatusConverter.labelFor(status)));
             statusLegend.getChildren().add(dot);
         }
     }
@@ -468,22 +478,27 @@ public class ReadingController {
     /** Highlights the button of the status of the selected term. */
     private void updateStatusButtons() {
         int index = 0;
+        Theme theme = themeService.getCurrentTheme();
+        TermStatus currentStatus = selectedTerm != null ? selectedTerm.getStatus() : null;
+        if (statusNameLabel != null) {
+            statusNameLabel.setText(currentStatus != null ? StatusConverter.labelFor(currentStatus) : "");
+        }
         for (Node node : statusButtons.getChildren()) {
             if (!(node instanceof Button button)) {
                 continue;
             }
             TermStatus status = assignableStatusAt(index++);
-            boolean active = selectedTerm != null && status != null
-                    && selectedTerm.getStatus() == status;
+            boolean active = currentStatus != null && status != null
+                    && currentStatus == status;
+            Color color = theme.getStatusColor(status);
+            String bg = toCssColor(color);
+            String textColor = color.getBrightness() > 0.62 ? "#1e293b" : "#ffffff";
+
+            button.getStyleClass().remove("status-button-active");
             if (active) {
-                Color color = themeService.getCurrentTheme().getStatusColor(status);
-                String textColor = color.getBrightness() > 0.62 ? "#1b1b18" : "#ffffff";
-                button.setStyle("-fx-background-color: " + toCssColor(color)
-                        + "; -fx-text-fill: " + textColor + "; -fx-border-color: transparent;");
-            } else {
-                button.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #5e5e56;"
-                        + " -fx-border-color: #d6d5cc;");
+                button.getStyleClass().add("status-button-active");
             }
+            button.setStyle("-fx-background-color: " + bg + "; -fx-text-fill: " + textColor + ";");
         }
     }
 
