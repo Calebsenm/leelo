@@ -140,8 +140,17 @@
                             <content>
                                 <VBox spacing="10">
                                     <children>
-                                        <Label styleClass="form-label" text="Traducción" />
-                                        <TextArea fx:id="translationArea" prefRowCount="3" styleClass="form-textarea"
+                                        <HBox alignment="CENTER_LEFT" spacing="8">
+                                            <children>
+                                                <Label styleClass="form-label" text="Traducción" />
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <Button fx:id="aiTranslateButton" styleClass="btn, btn-sm, btn-secondary" text="✨ IA">
+                                                    <tooltip><Tooltip text="Traducir, definir y ejemplificar con Ollama" /></tooltip>
+                                                </Button>
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="aiStatusLabel" managed="false" styleClass="field-hint" text="" visible="false" wrapText="true" />
+                                        <TextArea fx:id="translationArea" prefRowCount="5" styleClass="form-textarea"
                                                   wrapText="true" />
 
                                         <Label styleClass="form-label" text="Padres" />

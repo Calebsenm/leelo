@@ -7,6 +7,7 @@ import com.leelo.model.Language;
 import com.leelo.model.Term;
 import com.leelo.model.TermStatus;
 import com.leelo.model.Theme;
+import com.leelo.model.AiDefinition;
 import com.leelo.render.RenderedParagraph;
 import com.leelo.render.RenderedSentence;
 import com.leelo.render.TextItem;
@@ -15,6 +16,7 @@ import com.leelo.service.BookService;
 import com.leelo.service.HotkeyService;
 import com.leelo.service.ImageSearchService;
 import com.leelo.service.LanguageService;
+import com.leelo.service.OllamaService;
 import com.leelo.service.ReadingService;
 import com.leelo.service.SettingService;
 import com.leelo.service.StatisticsService;
@@ -113,6 +115,10 @@ public class ReadingController {
     @FXML
     private TextArea translationArea;
     @FXML
+    private Button aiTranslateButton;
+    @FXML
+    private Label aiStatusLabel;
+    @FXML
     private TextField parentsField;
     @FXML
     private TextField tagsField;
@@ -141,6 +147,7 @@ public class ReadingController {
     private final ThemeService themeService = new ThemeService(settingService);
     private final HotkeyService hotkeyService = new HotkeyService(settingService);
     private final ImageSearchService imageSearchService = new ImageSearchService();
+    private final OllamaService ollamaService = new OllamaService();
 
     private final EventHandler<KeyEvent> keyFilter = this::onKeyPressed;
     private final Map<InlineText, TextItem> itemsByNode = new IdentityHashMap<>();
@@ -174,6 +181,7 @@ public class ReadingController {
         saveTermButton.setOnAction(event -> saveSelectedTerm());
         deleteTermButton.setOnAction(event -> deleteSelectedTerm());
         closeTermButton.setOnAction(event -> hideTermPanel());
+        aiTranslateButton.setOnAction(event -> translateSelectedTermWithAi());
 
         buildStatusButtons();
         buildStatusLegend();
@@ -309,9 +317,15 @@ public class ReadingController {
         parentsField.setText(joinParents(selectedTerm));
         tagsField.setText(joinTags(selectedTerm));
         showImage(selectedTerm);
+        resetAiStatus();
         termPanel.setVisible(true);
         termPanel.setManaged(true);
         updateStatusButtons();
+
+        if (settingService.getBoolean(SettingService.OLLAMA_AUTO_TRANSLATE)
+                && (selectedTerm.getTranslation() == null || selectedTerm.getTranslation().isBlank())) {
+            translateSelectedTermWithAi();
+        }
     }
 
     /** Shows the image of a term, when it has one. */
@@ -346,10 +360,79 @@ public class ReadingController {
 
     /** Hides the details of the term. */
     private void hideTermPanel() {
+        resetAiStatus();
         termPanel.setVisible(false);
         termPanel.setManaged(false);
         selectedTerm = null;
         selectedItem = null;
+    }
+
+    /** Clears AI status feedback and re-enables the AI button. */
+    private void resetAiStatus() {
+        if (aiStatusLabel != null) {
+            aiStatusLabel.setText("");
+            aiStatusLabel.setVisible(false);
+            aiStatusLabel.setManaged(false);
+        }
+        if (aiTranslateButton != null) {
+            aiTranslateButton.setDisable(false);
+        }
+    }
+
+    /** Queries Ollama to translate, define, and give an example for the selected term. */
+    public void translateSelectedTermWithAi() {
+        if (selectedTerm == null) {
+            return;
+        }
+        final Term termToTranslate = selectedTerm;
+        String termText = TextTokens.strip(termToTranslate.getText());
+        if (termText.isBlank()) {
+            return;
+        }
+
+        String contextSentence = textForScope(1);
+
+        aiTranslateButton.setDisable(true);
+        aiStatusLabel.setText("Consultando Ollama (" + ollamaService.getModel() + ")...");
+        aiStatusLabel.setStyle("-fx-text-fill: #6366f1; -fx-font-size: 11px;");
+        aiStatusLabel.setVisible(true);
+        aiStatusLabel.setManaged(true);
+
+        Task<AiDefinition> task = new Task<>() {
+            @Override
+            protected AiDefinition call() throws Exception {
+                return ollamaService.generateDefinition(termText, contextSentence);
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            aiTranslateButton.setDisable(false);
+            AiDefinition definition = task.getValue();
+            if (definition != null) {
+                String formatted = definition.formatForTranslationArea();
+                if (selectedTerm == termToTranslate) {
+                    translationArea.setText(formatted);
+                    aiStatusLabel.setText("✓ Traducido con Ollama");
+                    aiStatusLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 11px;");
+                }
+                termToTranslate.setTranslation(formatted);
+                termService.save(termToTranslate);
+            }
+        });
+
+        task.setOnFailed(event -> {
+            aiTranslateButton.setDisable(false);
+            Throwable error = task.getException();
+            String msg = error != null && error.getMessage() != null
+                    ? error.getMessage()
+                    : "Error al consultar Ollama";
+            aiStatusLabel.setText(msg);
+            aiStatusLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 11px;");
+        });
+
+        Thread worker = new Thread(task, "leelo-ollama-translate");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     /** Builds the buttons that set the status of the selected term. */
@@ -705,6 +788,9 @@ public class ReadingController {
                 return true;
             case BOOKMARK:
                 addBookmark();
+                return true;
+            case TRANSLATE_SENTENCE:
+                translateSelectedTermWithAi();
                 return true;
             case COPY_SENTENCE:
                 copySelection(1);

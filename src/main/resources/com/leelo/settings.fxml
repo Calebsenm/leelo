@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -83,6 +84,41 @@
                                                         <Spinner fx:id="sampleSizeSpinner" maxWidth="Infinity" styleClass="form-input" />
                                                     </children>
                                                 </VBox>
+                                            </children>
+                                        </HBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox styleClass="card, form-card">
+                                    <children>
+                                        <VBox spacing="2">
+                                            <children>
+                                                <Label styleClass="section-title" text="Inteligencia Artificial (Ollama)" />
+                                                <Label styleClass="field-hint"
+                                                       text="Traduce palabras, genera definiciones en inglés/español y ejemplos con tu modelo local." />
+                                            </children>
+                                        </VBox>
+                                        <HBox spacing="16">
+                                            <children>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="URL del servidor Ollama" />
+                                                        <TextField fx:id="ollamaUrlField" promptText="http://localhost:11434" styleClass="form-input" />
+                                                    </children>
+                                                </VBox>
+                                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                                    <children>
+                                                        <Label styleClass="form-label" text="Modelo" />
+                                                        <TextField fx:id="ollamaModelField" promptText="qwen2.5:3b" styleClass="form-input" />
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                        </HBox>
+                                        <CheckBox fx:id="ollamaAutoTranslateCheck" text="Traducir automáticamente al hacer clic en palabras sin traducir" />
+                                        <HBox alignment="CENTER_LEFT" spacing="12">
+                                            <children>
+                                                <Button fx:id="testOllamaButton" styleClass="btn, btn-sm, btn-secondary" text="Probar conexión" />
+                                                <Label fx:id="ollamaStatusLabel" styleClass="field-hint" text="" wrapText="true" />
                                             </children>
                                         </HBox>
                                     </children>

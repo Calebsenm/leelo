@@ -41,6 +41,15 @@ public class SettingService {
     /** Width of the text column of the reading screen, in pixels. */
     public static final String READING_WIDTH = "reading_width";
 
+    /** URL of the Ollama server. */
+    public static final String OLLAMA_URL = "ollama_url";
+
+    /** Model name to use with Ollama. */
+    public static final String OLLAMA_MODEL = "ollama_model";
+
+    /** Whether to automatically translate untranslated words on click with Ollama. */
+    public static final String OLLAMA_AUTO_TRANSLATE = "ollama_auto_translate";
+
     private static final Map<String, String> DEFAULTS = new LinkedHashMap<>();
 
     static {
@@ -53,6 +62,9 @@ public class SettingService {
         DEFAULTS.put(FONT_SIZE, "25");
         DEFAULTS.put(LINE_SPACING, "1.5");
         DEFAULTS.put(READING_WIDTH, "760");
+        DEFAULTS.put(OLLAMA_URL, "http://localhost:11434");
+        DEFAULTS.put(OLLAMA_MODEL, "qwen2.5:3b");
+        DEFAULTS.put(OLLAMA_AUTO_TRANSLATE, "false");
     }
 
     private final SettingDAO settingDAO = new SettingDAO();

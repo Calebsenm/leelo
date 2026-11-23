@@ -17,9 +17,12 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.VBox;
+import com.leelo.service.OllamaService;
+import javafx.concurrent.Task;
 
 import java.util.List;
 
@@ -51,6 +54,16 @@ public class settingsController {
     @FXML
     private TableColumn<HotkeyService.Action, String> shortcutCol;
     @FXML
+    private TextField ollamaUrlField;
+    @FXML
+    private TextField ollamaModelField;
+    @FXML
+    private CheckBox ollamaAutoTranslateCheck;
+    @FXML
+    private Button testOllamaButton;
+    @FXML
+    private Label ollamaStatusLabel;
+    @FXML
     private Label messageLabel;
     @FXML
     private VBox messageContainer;
@@ -62,6 +75,7 @@ public class settingsController {
     private final SettingService settingService = new SettingService();
     private final LanguageService languageService = new LanguageService();
     private final HotkeyService hotkeyService = new HotkeyService(settingService);
+    private final OllamaService ollamaService = new OllamaService();
 
     private final ObservableList<HotkeyService.Action> actions = FXCollections.observableArrayList();
 
@@ -92,6 +106,7 @@ public class settingsController {
 
         saveButton.setOnAction(event -> save());
         backButton.setOnAction(event -> goToHome());
+        testOllamaButton.setOnAction(event -> testOllamaConnection());
 
         loadSettings();
     }
@@ -105,6 +120,14 @@ public class settingsController {
         showComponentsCheck.setSelected(settingService.getBoolean(SettingService.SHOW_TERM_COMPONENTS));
         fontSizeSpinner.getValueFactory().setValue(settingService.getInt(SettingService.FONT_SIZE));
         sampleSizeSpinner.getValueFactory().setValue(settingService.getInt(SettingService.STATS_SAMPLE_SIZE));
+        ollamaUrlField.setText(settingService.getRaw(SettingService.OLLAMA_URL));
+        String model = settingService.getRaw(SettingService.OLLAMA_MODEL);
+        if (model == null || model.isBlank() || "llama3.2".equalsIgnoreCase(model.trim())) {
+            model = "qwen2.5:3b";
+            settingService.setRaw(SettingService.OLLAMA_MODEL, model);
+        }
+        ollamaModelField.setText(model);
+        ollamaAutoTranslateCheck.setSelected(settingService.getBoolean(SettingService.OLLAMA_AUTO_TRANSLATE));
     }
 
     /** Saves the settings. */
@@ -117,9 +140,52 @@ public class settingsController {
         settingService.setBoolean(SettingService.SHOW_TERM_COMPONENTS, showComponentsCheck.isSelected());
         settingService.setInt(SettingService.FONT_SIZE, fontSizeSpinner.getValue());
         settingService.setInt(SettingService.STATS_SAMPLE_SIZE, sampleSizeSpinner.getValue());
+        String url = ollamaUrlField.getText() == null ? "" : ollamaUrlField.getText().trim();
+        String model = ollamaModelField.getText() == null ? "" : ollamaModelField.getText().trim();
+        settingService.setRaw(SettingService.OLLAMA_URL, url.isEmpty() ? "http://localhost:11434" : url);
+        settingService.setRaw(SettingService.OLLAMA_MODEL, model.isEmpty() ? "llama3.2" : model);
+        settingService.setBoolean(SettingService.OLLAMA_AUTO_TRANSLATE, ollamaAutoTranslateCheck.isSelected());
 
         hotkeysTable.refresh();
         showMessage("Ajustes guardados.");
+    }
+
+    /** Tests connection to the Ollama server. */
+    private void testOllamaConnection() {
+        String url = ollamaUrlField.getText() == null || ollamaUrlField.getText().isBlank()
+                ? "http://localhost:11434" : ollamaUrlField.getText().trim();
+        ollamaStatusLabel.setText("Probando conexión...");
+        ollamaStatusLabel.setStyle("-fx-text-fill: #6366f1;");
+        testOllamaButton.setDisable(true);
+
+        Task<List<String>> task = new Task<>() {
+            @Override
+            protected List<String> call() throws Exception {
+                return ollamaService.getInstalledModels(url);
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            testOllamaButton.setDisable(false);
+            List<String> models = task.getValue();
+            if (models.isEmpty()) {
+                ollamaStatusLabel.setText("✓ Conectado a Ollama, pero no hay modelos instalados ('ollama pull <modelo>').");
+                ollamaStatusLabel.setStyle("-fx-text-fill: #eab308;");
+            } else {
+                ollamaStatusLabel.setText("✓ Conexión exitosa. Modelos: " + String.join(", ", models));
+                ollamaStatusLabel.setStyle("-fx-text-fill: #16a34a;");
+            }
+        });
+
+        task.setOnFailed(e -> {
+            testOllamaButton.setDisable(false);
+            ollamaStatusLabel.setText("✗ No se pudo conectar a Ollama en " + url + ". Asegúrate de ejecutar 'ollama serve'.");
+            ollamaStatusLabel.setStyle("-fx-text-fill: #dc2626;");
+        });
+
+        Thread thread = new Thread(task, "leelo-test-ollama");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /** Lets the user pick a new shortcut for the selected action. */

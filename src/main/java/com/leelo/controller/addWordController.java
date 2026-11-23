@@ -3,7 +3,9 @@ package com.leelo.controller;
 import com.leelo.model.Language;
 import com.leelo.model.Term;
 import com.leelo.model.TermStatus;
+import com.leelo.model.AiDefinition;
 import com.leelo.service.LanguageService;
+import com.leelo.service.OllamaService;
 import com.leelo.service.TermService;
 import com.leelo.util.TextTokens;
 import javafx.concurrent.Task;
@@ -33,6 +35,10 @@ public class addWordController {
     @FXML
     private TextArea translationArea;
     @FXML
+    private Button aiTranslateButton;
+    @FXML
+    private Label aiStatusLabel;
+    @FXML
     private TextField pronunciationField;
     @FXML
     private ComboBox<TermStatus> statusCombo;
@@ -55,6 +61,7 @@ public class addWordController {
 
     private final TermService termService = new TermService();
     private final LanguageService languageService = new LanguageService();
+    private final OllamaService ollamaService = new OllamaService();
 
     private Term wordToEdit;
 
@@ -79,6 +86,7 @@ public class addWordController {
         saveButton.setOnAction(event -> saveOrUpdateWord());
         deleteButton.setOnAction(event -> deleteWord());
         cancelButton.setOnAction(event -> closeWindow());
+        aiTranslateButton.setOnAction(event -> translateWithAi());
         setDeleteVisible(false);
         urlImgField.textProperty().addListener((observable, oldValue, newValue) -> refreshPreview(newValue));
     }
@@ -232,6 +240,56 @@ public class addWordController {
         Thread worker = new Thread(task, "leelo-term-image");
         worker.setDaemon(true);
         worker.start();
+    }
+
+    /** Queries Ollama to generate a rich bilingual definition for the term in termField. */
+    private void translateWithAi() {
+        String text = termField.getText() == null ? "" : termField.getText().trim();
+        if (text.isEmpty()) {
+            showMessage("Escribe un término antes de consultar la IA.", true);
+            return;
+        }
+
+        aiTranslateButton.setDisable(true);
+        if (aiStatusLabel != null) {
+            aiStatusLabel.setText("Consultando Ollama...");
+            aiStatusLabel.setStyle("-fx-text-fill: #6366f1; -fx-font-size: 11px;");
+            aiStatusLabel.setVisible(true);
+            aiStatusLabel.setManaged(true);
+        }
+
+        Task<AiDefinition> task = new Task<>() {
+            @Override
+            protected AiDefinition call() throws Exception {
+                return ollamaService.generateDefinition(text, "");
+            }
+        };
+
+        task.setOnSucceeded(event -> {
+            aiTranslateButton.setDisable(false);
+            AiDefinition def = task.getValue();
+            if (def != null) {
+                translationArea.setText(def.formatForTranslationArea());
+                if (aiStatusLabel != null) {
+                    aiStatusLabel.setText("✓ Traducido con Ollama");
+                    aiStatusLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 11px;");
+                }
+            }
+        });
+
+        task.setOnFailed(event -> {
+            aiTranslateButton.setDisable(false);
+            Throwable err = task.getException();
+            String msg = err != null && err.getMessage() != null ? err.getMessage() : "Error al consultar Ollama";
+            if (aiStatusLabel != null) {
+                aiStatusLabel.setText(msg);
+                aiStatusLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 11px;");
+            }
+        });
+
+        Thread thread = new Thread(task, "leelo-addword-ollama");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /** Closes the window holding the form. */
